@@ -1,0 +1,1477 @@
+/* =========================================================
+   CPPEM · OPERAÇÃO PRAÇA PMPE + OPERAÇÃO DISTINTIVO PCPE
+   Página de venda direta ao checkout — as DUAS, num arquivo só.
+   ---------------------------------------------------------
+   Sistema visual herdado de ../unificados e ../livepmpe:
+   Oxanium + Rajdhani, ouro #AF9256 sobre preto #0A0A0B, fios
+   de 1px em ouro translúcido, cantos chanfrados de operação,
+   grão de impressão e brasas subindo pela viewport.
+
+   O QUE É NOVO AQUI é o PORTAL (.portal): a tela de entrada
+   com os dois brasões numa tempestade de brasas. Escolher um
+   lado acende a página inteira naquela operação.
+
+   ─── COMO AS DUAS OPERAÇÕES CONVIVEM ───────────────────
+   O documento inteiro é UM só. O que troca entre PMPE e PCPE
+   mora em quatro variáveis redefinidas em [data-op] no <html>:
+
+     --op-accent   o acento quente (ember) ou frio (steel)
+     --op-halo     o mesmo tom, em halo translúcido
+     --op-marca    a marca d água de seção
+     --op-brasao   o brasão do medalhão
+
+   Texto que muda (nomes, siglas, vagas, checkout) é escrito
+   pelo script.js a partir do CONFIG.ops — o HTML nasce com o
+   conteúdo da PMPE para que a página funcione sem JS.
+
+   NÃO acrescente um seletor .is-pmpe / .is-pcpe por
+   componente: é assim que uma variante começa a divergir da
+   outra sem ninguém perceber. Se algo precisa mudar de lado,
+   ou vira token acima, ou vira slot no CONFIG.
+   ========================================================= */
+
+/* ─── RESET ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── TOKENS ───────────────────────────────────────────── */
+:root {
+  --gold:        #AF9256;
+  --gold-light:  #C9AE7A;
+  --gold-pale:   #F0DCB0;
+  --gold-dark:   #8A7040;
+  --gold-deep:   #5E4B29;
+
+  --bg:   #0A0A0B;
+  --bg-2: #111115;
+  --bg-3: #18181E;
+  --bg-4: #1F1F28;
+
+  --border:        rgba(175,146,86,.18);
+  --border-soft:   rgba(175,146,86,.10);
+  --border-active: rgba(175,146,86,.55);
+
+  --text:      #E8E4D9;
+  --text-dim:  #ADA99B;
+  --text-mute: #87847A;
+
+  --danger: #C25B52;
+  --ok:     #6FA96A;
+
+  /* As duas assinaturas de cor. São de SUSSURRO: entram em halos, clarões e
+     fios — nunca em texto corrido ou botão. O sistema continua sendo o ouro,
+     e é ele que segura a marca de pé nas duas versões da página. */
+  --ember: #C4703F;   /* militar — PMPE  */
+  --steel: #5B8CB8;   /* civil   — PCPE  */
+
+  --font-title: 'Oxanium', system-ui, sans-serif;
+  --font-ui:    'Rajdhani', system-ui, sans-serif;
+
+  --nav-h: 76px;
+  --ease:   cubic-bezier(.4,0,.2,1);
+  --freada: cubic-bezier(.16,1.02,.3,1);
+  --t:      .28s var(--ease);
+
+  --maxw: 1180px;
+
+  /* Estado padrão = PMPE. Vale também para quem chega com o JS desligado. */
+  --op-accent: var(--ember);
+  --op-halo:   rgba(196,112,63,.30);
+  --op-marca:  url("public/marca-pmpe.webp");
+  --op-brasao: url("public/brasao-pmpe.webp");
+}
+
+[data-op="pcpe"] {
+  --op-accent: var(--steel);
+  --op-halo:   rgba(91,140,184,.30);
+  --op-marca:  url("public/marca-pcpe.webp");
+  --op-brasao: url("public/brasao-pcpe.webp");
+}
+
+/* ─── BASE ─────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.65;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* grão fino: dá peso de impressão ao preto chapado. Fica acima do conteúdo
+   (z-index 210) e abaixo de navbar/dock/float — de dentro de uma camada
+   z-index 1 o grão sumiria sob as seções. */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 210; pointer-events: none;
+  opacity: .13; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+/* height:auto é obrigatório: os <img> carregam width/height para reservar
+   espaço e evitar layout shift, e sem isto o atributo height venceria e
+   esticaria a imagem verticalmente. */
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+strong, b { font-weight: 700; color: var(--text); }
+::selection { background: var(--gold); color: #0B0A08; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #0d0d0f; }
+::-webkit-scrollbar-thumb { background: #2a2618; border: 2px solid #0d0d0f; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ─── LAYOUT ───────────────────────────────────────────── */
+.container { width: min(100% - 44px, var(--maxw)); margin-inline: auto; }
+.center { text-align: center; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Os dois clarões diagonais existem contra o "preto chapado": sem eles cada
+   seção era um retângulo de #0A0A0B liso e a página lia seca entre um bloco e
+   outro. São largos e fracos de propósito — não se enxerga o degradê,
+   enxerga-se que o fundo tem profundidade. */
+.section {
+  position: relative; padding: 106px 0; z-index: 2;
+  background:
+    radial-gradient(900px 460px at 80% 6%,  var(--op-halo), transparent 68%),
+    radial-gradient(780px 420px at 14% 94%, rgba(175,146,86,.045), transparent 70%);
+}
+/* O halo da operação a 30% seria mancha de cor no fundo de uma seção inteira;
+   aqui ele entra rebaixado pela própria opacidade do gradiente. */
+.section { background-blend-mode: normal; }
+.section--alt { background: linear-gradient(180deg, #0C0C0E, #0F0F13 50%, #0C0C0E); }
+
+/* ─── MARCAS D ÁGUA ────────────────────────────────────────
+   A marca da corporação escolhida entra pela direita nas seções planas e o
+   leão do CPPEM pela esquerda nas alternadas. A máscara vertical apaga a
+   marca perto das emendas para uma seção não "costurar" na outra.
+
+   marca-*, e NÃO brasao-*: o brasão oficial é colorido e, mesmo a 6% de
+   opacidade, jogava manchas de cor na direita da seção — a única coisa fora
+   da paleta na página inteira. O arquivo marca-* é o mesmo desenho remapeado
+   para a rampa de ouro, e some no preto como as outras texturas. */
+.section::before, .section--alt::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+.section::before {
+  background: var(--op-marca) calc(100% + 170px) 50% / auto 560px no-repeat;
+  opacity: .06;
+}
+/* O leão é um desenho grande e de traço grosso: na mesma opacidade da marca
+   da corporação ele dominava as seções mais vazias. */
+.section--alt::before {
+  background: url("public/emblema-leao.webp") -290px 50% / auto 620px no-repeat;
+  opacity: .032;
+}
+/* fios de ouro nas duas emendas, num único pseudo */
+.section--alt::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent, var(--border-active), transparent) top    / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent, var(--border-active), transparent) bottom / 100% 1px no-repeat;
+}
+.section > .container { position: relative; z-index: 2; }
+
+/* ─── TIPOGRAFIA DE SEÇÃO ──────────────────────────────── */
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-size: 11px; font-weight: 700; letter-spacing: 5px;
+  text-transform: uppercase; color: var(--gold);
+}
+.eyebrow::before, .eyebrow::after {
+  content: ''; width: 34px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+.eyebrow::after { background: linear-gradient(90deg, var(--gold), transparent); }
+
+.section__head { text-align: center; max-width: 920px; margin: 0 auto 56px; }
+.section__title {
+  font-family: var(--font-title);
+  font-size: clamp(30px, 4.6vw, 52px);
+  font-weight: 800; line-height: 1.04; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text); margin: 16px 0 0;
+}
+.section__title::after {
+  content: ''; display: block; width: 78px; height: 2px; margin: 22px auto 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.section__title--left { font-size: clamp(26px, 3.4vw, 40px); }
+.section__title--left::after { margin-inline: 0; }
+
+.section__lead {
+  max-width: 740px; margin: 22px auto 0; color: var(--text-dim);
+  font-size: 17px; line-height: 1.7;
+}
+.section__lead strong { color: var(--gold-light); }
+
+.gold {
+  background: linear-gradient(180deg, var(--gold-pale), var(--gold) 55%, var(--gold-dark));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ─── BRILHO (shine) ───────────────────────────────────────
+   Pseudo-elemento branco por cima da caixa. Só funciona sobre fundo sólido:
+   em cima de letra vazada leria como um quadrado claro passando por trás. */
+@keyframes shine-sweep {
+  0%   { transform: translateX(-160%) skewX(-22deg); }
+  55%  { transform: translateX(320%)  skewX(-22deg); }
+  100% { transform: translateX(320%)  skewX(-22deg); }
+}
+.shine { position: relative; overflow: hidden; }
+.shine::after {
+  content: ''; position: absolute; top: -60%; left: 0;
+  width: 42%; height: 220%; z-index: 3; pointer-events: none;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(255,255,255,.10) 35%,
+    rgba(255,255,255,.55) 50%, rgba(255,255,255,.10) 65%, transparent 100%);
+  animation: shine-sweep 4.6s var(--ease) infinite;
+}
+.shine--slow::after { animation-duration: 6.5s; width: 34%; }
+
+/* ─── BOTÕES ───────────────────────────────────────────── */
+.btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  gap: 12px; height: 52px; padding: 0 30px;
+  font-size: 13.5px; font-weight: 700; letter-spacing: 2.4px;
+  text-transform: uppercase; white-space: nowrap; text-align: center;
+  border: 0; cursor: pointer; overflow: hidden; isolation: isolate;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  transition: transform var(--t), filter var(--t), background var(--t), color var(--t);
+}
+.btn > span { position: relative; z-index: 2; }
+.btn:active { transform: translateY(1px) scale(.995); }
+.btn:disabled { cursor: progress; filter: grayscale(.35) brightness(.9); }
+
+.btn--gold {
+  color: #0B0A08;
+  background: linear-gradient(168deg, var(--gold-pale) 0%, var(--gold-light) 22%, var(--gold) 55%, var(--gold-dark) 100%);
+  filter: drop-shadow(0 10px 24px rgba(175,146,86,.30));
+}
+.btn--gold::before {
+  content: ''; position: absolute; inset: 1px; z-index: 1;
+  background: linear-gradient(180deg, rgba(255,255,255,.42), transparent 45%);
+  clip-path: inherit; pointer-events: none;
+}
+.btn--gold:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 16px 32px rgba(175,146,86,.52)) brightness(1.06);
+}
+
+.btn--ghost {
+  color: var(--gold-light);
+  background: rgba(175,146,86,.05);
+  box-shadow: inset 0 0 0 1px var(--border-active);
+}
+.btn--ghost:hover {
+  color: #0B0A08;
+  background: linear-gradient(168deg, var(--gold-light), var(--gold-dark));
+  transform: translateY(-2px);
+}
+
+.btn--lg { height: 62px; padding: 0 44px; font-size: 15px; letter-spacing: 3px; }
+.btn--block { width: 100%; }
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 4px rgba(175,146,86,.16); }
+  50%     { box-shadow: 0 0 0 8px rgba(175,146,86,.03); }
+}
+
+/* =========================================================
+   O PORTAL — a tela de entrada
+   ---------------------------------------------------------
+   Duas operações, uma página. A escolha não podia ser um
+   <select> nem duas abas: o produto é o mesmo método aplicado
+   a dois concursos diferentes, e quem chega precisa se
+   reconhecer em UM lado antes de ler qualquer oferta.
+
+   Por isso o portal ocupa a viewport inteira e não tem
+   scroll: enquanto ele está de pé, não existe página atrás
+   dele para o visitante espiar. É uma decisão, não uma capa.
+
+   position: fixed e não um <section> no fluxo: o site abaixo
+   já está montado e com o scroll travado (html.is-portal), e
+   um portal no fluxo empurraria a hero para 100vh de
+   distância — a primeira rolagem depois da escolha cairia no
+   vazio.
+   ========================================================= */
+.portal {
+  position: fixed; inset: 0; z-index: 400;
+  display: grid; grid-template-rows: auto 1fr auto;
+  padding: clamp(18px, 4vh, 40px) 0;
+  background:
+    radial-gradient(120% 90% at 50% 108%, rgba(196,112,63,.16), transparent 62%),
+    radial-gradient(90% 70% at 50% -10%, rgba(175,146,86,.10), transparent 60%),
+    #08080A;
+  overflow: hidden;
+  transition: opacity .62s var(--ease), transform .62s var(--ease), visibility .62s;
+}
+/* O fundo do atirador também aqui, mais apagado que na hero: dá chão à cena
+   sem competir com os dois brasões, que são o assunto. */
+.portal__bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background: url("public/bgatirador.webp") center 28% / cover no-repeat;
+  opacity: .13; filter: grayscale(.7) contrast(1.05) brightness(.72);
+}
+.portal__veil {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(110% 85% at 50% 45%, rgba(8,8,10,.30), rgba(8,8,10,.90) 62%, #08080A 100%);
+}
+.portal__grid {
+  position: absolute; inset: 0; pointer-events: none; opacity: .55;
+  background-image:
+    linear-gradient(rgba(175,146,86,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(175,146,86,.06) 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: radial-gradient(ellipse at 50% 50%, #000 6%, transparent 68%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 6%, transparent 68%);
+}
+.portal__scan {
+  position: absolute; inset: 0; pointer-events: none; opacity: .18;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 1px, transparent 1px 4px);
+}
+/* A camada de brasas do portal é a mesma .brasa da página, mas em outro
+   contêiner: aqui elas são mais densas e nascem abaixo da dobra, porque o
+   portal não rola e a atmosfera precisa se sustentar sozinha. */
+.portal__brasas { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+.portal__top, .portal__bottom, .portal__meio {
+  position: relative; z-index: 4;
+  width: min(100% - 36px, 1280px); margin-inline: auto;
+}
+.portal__top { text-align: center; }
+.portal__meio { display: grid; place-items: center; }
+
+/* ─── marca e chamada ─── */
+.portal__marca {
+  display: inline-flex; align-items: center; gap: 14px;
+  animation: rise .8s var(--ease) both .05s;
+}
+.portal__marca img { width: 46px; filter: drop-shadow(0 2px 12px rgba(175,146,86,.42)); }
+.portal__marca b {
+  font-family: var(--font-title); font-size: 20px; font-weight: 800;
+  letter-spacing: 4px; text-transform: uppercase; color: var(--text); line-height: 1;
+}
+.portal__marca i {
+  display: block; margin-top: 4px; font-family: var(--font-ui); font-style: normal;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.8px; color: var(--gold);
+}
+.portal__chamada {
+  margin-top: clamp(14px, 3vh, 26px);
+  animation: rise .8s var(--ease) both .18s;
+}
+.portal__chamada h1 {
+  margin-top: 14px;
+  font-family: var(--font-title);
+  font-size: clamp(26px, 5.2vw, 50px); font-weight: 800; line-height: 1.02;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text);
+  text-shadow: 0 8px 40px rgba(0,0,0,.8);
+}
+.portal__chamada p {
+  margin: 14px auto 0; max-width: 58ch; color: var(--text-dim);
+  font-size: clamp(14.5px, 1.7vw, 17px); line-height: 1.6;
+}
+
+/* ─── os dois portões ───────────────────────────────────────
+   grid de 1fr auto 1fr com a costura no meio, e não flex com gap: a costura
+   precisa de largura própria (ela é um elemento, não um vão) e as duas
+   colunas têm que ficar exatamente iguais mesmo com nomes de tamanhos
+   diferentes — "PRAÇA PMPE" e "DISTINTIVO PCPE" não têm a mesma medida. */
+.portoes {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: clamp(10px, 2.4vw, 34px);
+  width: 100%;
+}
+
+/* A costura central. Vertical no desktop, horizontal no mobile — o "OU" fica
+   no meio dela nos dois casos. */
+.portoes__ou {
+  position: relative; align-self: stretch;
+  display: grid; place-items: center;
+  width: 58px; min-height: 120px;
+  font-family: var(--font-title); font-size: 12px; font-weight: 800;
+  letter-spacing: 4px; text-transform: uppercase; color: var(--gold);
+  animation: rise .8s var(--ease) both .5s;
+}
+.portoes__ou::before, .portoes__ou::after {
+  content: ''; position: absolute; left: 50%; width: 1px; transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, var(--border-active));
+}
+.portoes__ou::before { top: 0;    height: calc(50% - 22px); }
+.portoes__ou::after  { bottom: 0; height: calc(50% - 22px);
+  background: linear-gradient(0deg, transparent, var(--border-active)); }
+
+/* O portão em si.
+   É um <button>, não um <a>: a escolha não navega para outro documento — ela
+   acende esta mesma página. Um link com href="#/pmpe" prometeria uma página
+   nova e daria o menu de contexto "abrir em nova aba", que aqui abriria o
+   portal de novo. */
+.portao {
+  position: relative; display: block; width: 100%; cursor: pointer;
+  padding: clamp(20px, 3.4vh, 34px) clamp(16px, 2.4vw, 30px);
+  text-align: center; isolation: isolate;
+  background: linear-gradient(180deg, rgba(24,24,30,.72), rgba(12,12,15,.86));
+  box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+  transition: transform .42s var(--freada), box-shadow .32s var(--ease), background .32s var(--ease);
+  animation: portao-entra .9s var(--freada) both;
+}
+.portao--a { animation-delay: .32s; }
+.portao--b { animation-delay: .44s; }
+@keyframes portao-entra {
+  from { opacity: 0; transform: translateY(38px) scale(.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* O clarão que segue o cursor. Fica no ::before para não brigar com o
+   clip-path do próprio botão — herdando o recorte, ele nunca vaza do chanfro. */
+.portao::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; opacity: 0;
+  background: radial-gradient(420px 300px at var(--mx, 50%) var(--my, 40%), var(--halo), transparent 68%);
+  clip-path: inherit; pointer-events: none;
+  transition: opacity .38s var(--ease);
+}
+.portao:hover, .portao:focus-visible {
+  transform: translateY(-8px);
+  box-shadow: inset 0 0 0 1px var(--border-active), 0 26px 60px -28px var(--halo);
+  background: linear-gradient(180deg, rgba(30,30,38,.82), rgba(14,14,18,.9));
+}
+.portao:hover::before, .portao:focus-visible::before { opacity: 1; }
+.portao:active { transform: translateY(-3px) scale(.99); }
+
+/* Enquanto um portão está em foco, o outro recua. Sem isso os dois pesam
+   igual e a escolha continua custando o mesmo tempo com o cursor já em cima
+   de uma delas. :has é a única forma de dizer isso sem JS. */
+.portoes:has(.portao:hover) .portao:not(:hover),
+.portoes:has(.portao:focus-visible) .portao:not(:focus-visible) {
+  opacity: .42; filter: saturate(.5);
+}
+.portao { transition: transform .42s var(--freada), box-shadow .32s var(--ease),
+                      background .32s var(--ease), opacity .32s var(--ease), filter .32s var(--ease); }
+
+/* ─── o medalhão do portão ───────────────────────────────
+   Hexágono de ouro com o brasão dentro, o mesmo vocabulário do .fusao das
+   outras páginas — só que aqui é UM brasão por medalhão, porque o assunto
+   deste portal é justamente separar os dois. */
+/* display: block é obrigatório e NÃO é redundante: o medalhão é um <span>
+   dentro de um <button>, e caixa inline ignora width, aspect-ratio e margem
+   vertical — o hexágono simplesmente não aparece. */
+.portao__selo {
+  display: block;
+  position: relative; width: clamp(96px, 15vh, 150px); aspect-ratio: 1;
+  margin: 0 auto clamp(14px, 2.4vh, 22px);
+}
+.portao__aro {
+  position: absolute; inset: 0;
+  background: conic-gradient(from 0deg,
+    var(--gold-deep), var(--gold-light) 18%, var(--gold-pale) 26%, var(--gold) 42%,
+    var(--gold-deep) 58%, var(--gold-light) 76%, var(--gold-deep) 100%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: aro-gira 14s linear infinite;
+}
+@keyframes aro-gira { to { transform: rotate(360deg); } }
+.portao__core {
+  position: absolute; inset: 3px;
+  background: radial-gradient(circle at 50% 34%, #1a1a20, #0b0b0e 72%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: grid; place-items: center; overflow: hidden;
+}
+.portao__core img {
+  width: 62%; height: 62%; object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,.7));
+  transition: transform .42s var(--freada);
+}
+.portao:hover .portao__core img { transform: scale(1.07); }
+/* halo por trás do medalhão: é o único lugar do portal onde a cor da
+   operação aparece em cheio, e é o que diferencia os dois lados de relance */
+.portao__selo::before {
+  content: ''; position: absolute; inset: -28%; z-index: -1;
+  background: radial-gradient(circle, var(--halo), transparent 66%);
+  animation: halo-respira 3.6s var(--ease) infinite;
+}
+@keyframes halo-respira {
+  0%,100% { opacity: .62; transform: scale(1); }
+  50%     { opacity: 1;   transform: scale(1.09); }
+}
+/* varredura de luz sobre o brasão, presa ao recorte do hexágono */
+.portao__core::after {
+  content: ''; position: absolute; top: -60%; left: 0; width: 40%; height: 220%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.16) 45%, rgba(255,255,255,.5) 50%, rgba(255,255,255,.16) 55%, transparent);
+  animation: shine-sweep 5.4s var(--ease) infinite;
+}
+
+/* ─── texto do portão ───
+   .portao__txt é um <span> e precisa virar bloco: no mobile ele é uma das
+   duas colunas do grid do portão, e uma caixa inline não pode ser item de
+   grid sem virar bloco anônimo — o que funciona, mas tira dela a capacidade
+   de receber alinhamento próprio. */
+.portao__txt { display: block; }
+.portao__desig {
+  display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 4.4px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+}
+.portao__nome {
+  display: block; font-family: var(--font-title);
+  font-size: clamp(24px, 3.6vw, 42px); font-weight: 800; line-height: .98;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text);
+}
+.portao__sigla {
+  display: block; font-family: var(--font-title);
+  font-size: clamp(28px, 4.4vw, 50px); font-weight: 800; line-height: 1;
+  letter-spacing: 3px; text-transform: uppercase;
+  background: linear-gradient(180deg, var(--gold-pale), var(--gold) 55%, var(--gold-dark));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.portao__corp {
+  display: block; margin-top: 10px; color: var(--text-dim);
+  font-size: clamp(12.5px, 1.5vw, 14.5px); letter-spacing: .6px;
+}
+.portao__vagas {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
+  height: 30px; padding: 0 13px;
+  background: rgba(175,146,86,.08); box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.portao__vagas b { font-family: var(--font-title); color: var(--gold-light); font-size: 13px; letter-spacing: 1px; }
+
+/* A seta. Some no repouso e desliza para dentro do portão no hover: é o
+   "entrar" que o botão não diz por escrito. */
+/* flex e não inline-flex: a seta tem que cair numa linha própria, senão ela
+   fica encostada na pastilha de vagas como se fosse legenda dela. */
+.portao__entrar {
+  display: flex; justify-content: center; align-items: center; gap: 10px;
+  margin-top: clamp(14px, 2.4vh, 22px);
+  font-size: 11.5px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold-light);
+  opacity: .55; transition: opacity var(--t), gap var(--t);
+}
+.portao:hover .portao__entrar, .portao:focus-visible .portao__entrar { opacity: 1; gap: 16px; }
+.portao__entrar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* ─── rodapé do portal ─── */
+.portal__bottom { text-align: center; animation: rise .8s var(--ease) both .62s; }
+.portal__nota {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 2.6px;
+  text-transform: uppercase; color: var(--text-mute);
+}
+.portal__nota b { color: var(--gold); font-weight: 700; }
+
+/* ─── A IGNIÇÃO ─────────────────────────────────────────────
+   O que acontece entre o clique e a página.
+
+   O portão escolhido cresce e clareia enquanto o outro cai; ao mesmo tempo o
+   .portal__flash abre do centro do portão clicado. A posição do clarão vem do
+   próprio elemento (--fx/--fy, escritas pelo script), porque acender no meio
+   da tela quando o clique foi na coluna da esquerda lê como coincidência, e
+   não como consequência. */
+.portal__flash {
+  position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at var(--fx, 50%) var(--fy, 50%),
+    #FFF3D6 0%, var(--halo, rgba(196,112,63,.5)) 16%, transparent 46%);
+}
+.portal.is-igniting .portal__flash { animation: ignicao .72s var(--ease) forwards; }
+@keyframes ignicao {
+  0%   { opacity: 0;   transform: scale(.4); }
+  22%  { opacity: 1;   transform: scale(1); }
+  100% { opacity: 0;   transform: scale(2.2); }
+}
+.portal.is-igniting .portao.is-chosen {
+  transform: translateY(-14px) scale(1.06);
+  box-shadow: inset 0 0 0 1px var(--gold-pale), 0 0 80px -10px var(--halo);
+  opacity: 1; filter: none;
+}
+.portal.is-igniting .portao:not(.is-chosen) { opacity: 0; transform: translateY(26px) scale(.9); }
+.portal.is-igniting .portal__top,
+.portal.is-igniting .portal__bottom,
+.portal.is-igniting .portoes__ou { opacity: 0; transition: opacity .3s var(--ease); }
+
+/* O portal sai por cima, e não por baixo: subir revela a página como quem
+   levanta uma cortina — descer pareceria a página empurrando o portal para
+   fora, e o gesto de escolha foi para dentro. */
+.portal.is-gone {
+  opacity: 0; transform: scale(1.14); visibility: hidden;
+}
+/* enquanto o portal está de pé, a página atrás não rola nem recebe foco */
+html.is-portal, html.is-portal body { overflow: hidden; height: 100%; }
+html.is-portal .site { opacity: 0; }
+.site { transition: opacity .5s var(--ease) .1s; }
+
+/* A cascata da hero fica PAUSADA, e não escondida: sem isto ela roda inteira
+   atrás do portal e quem escolhe uma operação recebe a dobra já montada, sem
+   entrada nenhuma. Pausar a animação em vez de reiniciá-la por JS mantém a
+   coreografia num lugar só — o CSS. */
+html.is-portal .anim { animation-play-state: paused; }
+
+/* A dock e o WhatsApp moram FORA do .site (são camadas fixas da janela, não
+   conteúdo da página), então o inert não os alcança. Escondê-los enquanto o
+   portal está de pé é o que impede o Tab de sair do segundo portão e pousar
+   num botão de checkout de uma operação que ninguém escolheu ainda. */
+html.is-portal .dock, html.is-portal .float { display: none; }
+
+/* O portal não rola: enquanto ele está de pé, não existe página atrás para o
+   visitante espiar. Em tela muito baixa — celular deitado, janela cortada —
+   isso viraria conteúdo decepado, e aí a rolagem volta. */
+@media (max-height: 620px) {
+  .portal { overflow-y: auto; }
+  .portal__chamada h1 { font-size: clamp(22px, 4vw, 34px); }
+  .portal__chamada p { display: none; }
+}
+
+/* Estilhaços da ignição: os mesmos <i> do medalhão das outras páginas, aqui
+   nascendo do portão escolhido. Origem, ângulo, distância e tamanho vêm do
+   script; a animação é CSS. */
+.portal__cacos { position: absolute; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
+.caco {
+  position: absolute; left: var(--ox); top: var(--oy);
+  width: var(--s); height: var(--s); border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #FFF3D6, var(--cor) 55%, transparent 76%);
+  box-shadow: 0 0 calc(var(--s) * 3) var(--cor);
+  opacity: 0; animation: caco-voa var(--dur) var(--ease) forwards;
+}
+@keyframes caco-voa {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.3); }
+}
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+.progress {
+  position: fixed; top: 0; left: 0; height: 2px; width: 0; z-index: 320;
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold), var(--gold-pale));
+  box-shadow: 0 0 12px rgba(175,146,86,.7);
+}
+
+.header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); z-index: 300;
+  display: flex; align-items: center;
+  background: linear-gradient(180deg, rgba(10,10,11,.72), rgba(10,10,11,.30));
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  transition: height var(--t), background var(--t), box-shadow var(--t);
+}
+.header::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-active) 20%, var(--border-active) 80%, transparent);
+  opacity: .55; transition: opacity var(--t);
+}
+.header.is-stuck {
+  height: 66px; background: rgba(9,9,10,.94);
+  box-shadow: 0 14px 40px -18px rgba(0,0,0,.95);
+}
+.header.is-stuck::after { opacity: 1; }
+
+.header__inner {
+  display: flex; align-items: center; gap: 22px;
+  width: min(100% - 36px, 1320px); margin-inline: auto;
+}
+
+/* A marca é o LEÃO + o nome em Oxanium. O emblema já vem com alfa, então o
+   desenho recortado é o próprio <img> e no lugar do brilho entra um halo de
+   ouro no hover — mask-image com origem .webp não pinta no Chrome. */
+.brand { display: flex; align-items: center; gap: 13px; flex-shrink: 0; }
+.brand__leao { position: relative; display: block; width: 42px; transition: width var(--t); }
+.brand__leao img {
+  width: 100%;
+  filter: drop-shadow(0 2px 8px rgba(175,146,86,.28));
+  transition: filter var(--t);
+}
+.brand:hover .brand__leao img { filter: drop-shadow(0 2px 14px rgba(175,146,86,.65)); }
+.header.is-stuck .brand__leao { width: 36px; }
+.brand__nome {
+  display: flex; flex-direction: column; line-height: 1;
+  font-family: var(--font-title); font-size: 19px; font-weight: 800;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--text);
+}
+.brand__nome i {
+  margin-top: 4px; font-family: var(--font-ui); font-style: normal;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 2.6px; color: var(--gold);
+}
+
+.nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.nav a {
+  position: relative; padding: 10px 13px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-dim); transition: color var(--t);
+}
+.nav a::after {
+  content: ''; position: absolute; left: 13px; right: 13px; bottom: 4px; height: 1px;
+  background: var(--gold); transform: scaleX(0); transform-origin: left;
+  transition: transform var(--t);
+}
+.nav a:hover { color: var(--gold-light); }
+.nav a:hover::after { transform: scaleX(1); }
+
+/* ─── O SELETOR DE OPERAÇÃO NO HEADER ──────────────────────
+   Uma pastilha com a operação corrente e um botão para trocar. Ela existe
+   porque o portal só aparece uma vez: sem esse controle, quem entrou na PMPE
+   e queria a PCPE teria que descobrir sozinho que o caminho é apagar o hash
+   da URL. É a única saída de volta, e por isso está na navbar e no rodapé. */
+.opsel {
+  display: inline-flex; align-items: center; gap: 10px; margin-left: 14px;
+  height: 40px; padding: 0 6px 0 14px;
+  background: rgba(175,146,86,.07);
+  box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  white-space: nowrap;
+}
+.opsel > i {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--op-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--op-accent) 18%, transparent);
+  animation: pulse 2.2s infinite; flex-shrink: 0;
+}
+.opsel b {
+  font-family: var(--font-title); font-size: 13px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-light);
+}
+.opsel button {
+  height: 28px; padding: 0 11px; cursor: pointer;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--text-mute);
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  transition: color var(--t), box-shadow var(--t), background var(--t);
+}
+.opsel button:hover {
+  color: var(--gold-light); background: rgba(175,146,86,.1);
+  box-shadow: inset 0 0 0 1px var(--border-active);
+}
+
+.header .btn { height: 42px; padding: 0 20px; font-size: 11.5px; letter-spacing: 2px; }
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero {
+  position: relative; z-index: 2;
+  min-height: 100svh; display: flex; align-items: center;
+  padding: calc(var(--nav-h) + 46px) 0 72px;
+  overflow: hidden; text-align: center;
+}
+.hero__bg { position: absolute; inset: -6% 0 0; will-change: transform; }
+.hero__bg i {
+  position: absolute; inset: 0; display: block;
+  background: url("public/bgatirador.webp") center 30% / cover no-repeat;
+  transform: scale(1.04);
+  opacity: .30;
+  filter: grayscale(.55) contrast(1.06) brightness(.86);
+}
+/* Véu vertical, e não lateral: a hero é centralizada, então escurecer só um
+   dos lados jogaria o texto para fora do eixo de leitura. */
+.hero__veil {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 42%, rgba(10,10,11,.36) 0%, rgba(10,10,11,.86) 58%, rgba(10,10,11,.97) 100%),
+    linear-gradient(180deg, rgba(10,10,11,.92) 0%, transparent 24%, transparent 62%, var(--bg) 100%);
+}
+.hero__dawn {
+  position: absolute; left: 50%; bottom: -32%; transform: translateX(-50%);
+  width: 130%; height: 60%; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 100%, var(--op-halo), rgba(175,146,86,.06) 42%, transparent 70%);
+}
+.hero__grid {
+  position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image:
+    linear-gradient(rgba(175,146,86,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(175,146,86,.055) 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 8%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 8%, transparent 70%);
+}
+.hero__scan {
+  position: absolute; inset: 0; pointer-events: none; opacity: .2;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 1px, transparent 1px 4px);
+}
+.hero__inner { position: relative; z-index: 4; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 11px;
+  height: 38px; padding: 0 18px; margin-bottom: 24px;
+  background: rgba(175,146,86,.08);
+  box-shadow: inset 0 0 0 1px var(--border-active);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  font-size: 11.5px; font-weight: 700; letter-spacing: 2.6px;
+  text-transform: uppercase; color: var(--gold-light);
+}
+.tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: pulse 2.2s infinite; }
+
+.hero__desig {
+  display: block; font-size: clamp(11px, 1.6vw, 14px); font-weight: 700;
+  letter-spacing: clamp(6px, 1.4vw, 12px); text-indent: clamp(6px, 1.4vw, 12px);
+  text-transform: uppercase; color: var(--gold); margin-bottom: 14px;
+}
+
+/* ─── A MANCHETE ────────────────────────────────────────────
+   O nome da operação é a manchete, e o brilho que passa por ele NÃO é a
+   varredura de .shine (a dos botões). Aquela é um pseudo branco por cima da
+   caixa: sobre letra vazada leria como um quadrado claro passando por trás.
+
+   Aqui a luz É o preenchimento do texto: duas camadas de fundo recortadas
+   pelo background-clip: text — a rampa de ouro parada embaixo e a lâmina de
+   luz que anda em cima. Fora do desenho das letras não existe pixel para
+   pintar. */
+.hero__title {
+  font-family: var(--font-title);
+  font-size: clamp(38px, 8.4vw, 104px);
+  font-weight: 800; line-height: .94; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text);
+  text-shadow: 0 8px 40px rgba(0,0,0,.75);
+}
+.hero__title .luz {
+  background-image:
+    linear-gradient(100deg, transparent 0%, rgba(255,255,255,.92) 45%, rgba(255,255,255,.92) 55%, transparent 100%),
+    linear-gradient(180deg, var(--gold-pale), var(--gold) 52%, var(--gold-dark));
+  background-size: 55% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: -80% 0, 0 0;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: brilho-letras 5s var(--ease) infinite;
+}
+@keyframes brilho-letras {
+  0%   { background-position: -80% 0, 0 0; }
+  38%  { background-position: 180% 0, 0 0; }
+  100% { background-position: 180% 0, 0 0; }
+}
+
+.hero__sub {
+  max-width: 62ch; margin: 26px auto 0;
+  color: var(--text-dim); font-size: clamp(15.5px, 2vw, 18.5px); line-height: 1.65;
+}
+.hero__sub strong { color: var(--gold-light); }
+
+.hero__cta {
+  display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+  margin-top: 34px;
+}
+.hero__nota {
+  display: block; margin-top: 18px;
+  font-size: 12px; font-weight: 700; letter-spacing: 2.2px;
+  text-transform: uppercase; color: var(--text-mute);
+}
+
+/* ─── O MEDALHÃO DA HERO ────────────────────────────────────
+   Mesmo hexágono do portal, maior, com o leão do CPPEM atrás do brasão da
+   corporação: quem prepara e para quem se prepara, na mesma peça.
+
+   O leão fica no ::after do core (e não num <img> irmão) porque ele é
+   textura, não conteúdo: um segundo <img> pediria alt, e "leão do CPPEM
+   desbotado atrás do brasão" não é informação que um leitor de tela precise. */
+.selo {
+  position: relative; width: clamp(150px, 26vw, 250px); aspect-ratio: 1;
+  margin: clamp(26px, 5vh, 44px) auto 0;
+}
+.selo__aro {
+  position: absolute; inset: 0;
+  background: conic-gradient(from 0deg,
+    var(--gold-deep), var(--gold-light) 18%, var(--gold-pale) 26%, var(--gold) 42%,
+    var(--gold-deep) 58%, var(--gold-light) 76%, var(--gold-deep) 100%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: aro-gira 20s linear infinite;
+}
+.selo__core {
+  position: absolute; inset: 4px;
+  background: radial-gradient(circle at 50% 34%, #1c1c22, #0a0a0d 74%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: grid; place-items: center; overflow: hidden;
+}
+.selo__core::before {
+  content: ''; position: absolute; inset: 8%;
+  background: url("public/emblema-leao.webp") center / contain no-repeat;
+  opacity: .1;
+}
+.selo__core img {
+  position: relative; width: 58%; height: 58%; object-fit: contain;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,.75));
+}
+.selo::before {
+  content: ''; position: absolute; inset: -26%; z-index: -1;
+  background: radial-gradient(circle, var(--op-halo), transparent 66%);
+  animation: halo-respira 4.2s var(--ease) infinite;
+}
+/* onda que sai do medalhão a cada ciclo: o "pulso" da operação */
+.selo::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: 0 0 0 1px var(--border-active);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: selo-onda 3.6s var(--ease) infinite;
+}
+@keyframes selo-onda {
+  0%   { opacity: .8; transform: scale(1); }
+  70%  { opacity: 0;  transform: scale(1.28); }
+  100% { opacity: 0;  transform: scale(1.28); }
+}
+
+/* ─── FICHA (números da hero) ──────────────────────────── */
+.ficha {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  max-width: 900px; margin: 46px auto 0;
+  background: var(--border-soft);
+  box-shadow: 0 0 0 1px var(--border-soft);
+}
+.ficha__item { background: rgba(10,10,11,.7); padding: 20px 12px; }
+.ficha__item b {
+  display: block; font-family: var(--font-title);
+  font-size: clamp(22px, 3.2vw, 32px); font-weight: 800; letter-spacing: 1px;
+  color: var(--gold-light); line-height: 1;
+}
+.ficha__item span {
+  display: block; margin-top: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--text-mute); line-height: 1.4;
+}
+
+.scroller { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 4; }
+.scroller i {
+  position: relative; display: block; width: 22px; height: 34px;
+  box-shadow: inset 0 0 0 1px var(--border-active); border-radius: 12px;
+}
+.scroller i::after {
+  content: ''; position: absolute; left: 50%; top: 7px; transform: translateX(-50%);
+  width: 3px; height: 6px; border-radius: 2px; background: var(--gold);
+  animation: scrolldot 1.9s var(--ease) infinite;
+}
+@keyframes scrolldot { 0%{opacity:0;top:7px} 40%{opacity:1} 80%{opacity:0;top:20px} 100%{opacity:0} }
+
+/* =========================================================
+   FAIXA CORRIDA
+   ========================================================= */
+.strip {
+  position: relative; z-index: 2; overflow: hidden;
+  padding: 15px 0; background: #0C0C0F;
+  border-block: 1px solid var(--border);
+}
+.strip__track {
+  display: flex; width: max-content; gap: 46px;
+  animation: marquee 34s linear infinite;
+}
+.strip__track span {
+  font-family: var(--font-title); font-size: 12.5px; font-weight: 700;
+  letter-spacing: 3.4px; text-transform: uppercase; color: var(--text-mute);
+  display: inline-flex; align-items: center; gap: 46px; white-space: nowrap;
+}
+.strip__track span::after { content: ''; width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ─── QUANDO UM BRASÃO NÃO CARREGA ─────────────────────────
+   O script esconde a <img> e escreve a sigla no lugar dela, dentro do mesmo
+   núcleo. A página nunca mostra imagem quebrada — e o medalhão continua
+   dizendo de que corporação ele é. */
+.selo__sigla {
+  position: relative; font-family: var(--font-title);
+  font-size: clamp(20px, 5vw, 38px); font-weight: 800; letter-spacing: 2px;
+  color: var(--gold-light); text-shadow: 0 2px 12px rgba(0,0,0,.8);
+}
+
+/* =========================================================
+   O QUE VOCÊ RECEBE — a lista de entregáveis
+   ---------------------------------------------------------
+   Nove itens em lista, não em cards: eles são um pacote único e a leitura é
+   de cima para baixo, item a item. Em card cada um viraria uma oferta
+   independente disputando atenção com as outras oito.
+   ========================================================= */
+.entrega { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.item {
+  position: relative; display: flex; align-items: flex-start; gap: 15px;
+  padding: 20px 22px; isolation: isolate;
+  background: linear-gradient(180deg, rgba(24,24,30,.9), rgba(17,17,21,.9));
+  box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  transition: transform var(--t), box-shadow var(--t), background var(--t);
+}
+/* o clarão que segue o cursor. Mora no ::before para herdar o clip-path do
+   pai — assim ele nunca vaza pelo chanfro do canto. */
+.item::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0;
+  background: radial-gradient(300px 200px at var(--mx, 50%) var(--my, 50%), rgba(175,146,86,.14), transparent 70%);
+  clip-path: inherit; transition: opacity var(--t);
+}
+.item:hover::before { opacity: 1; }
+.item:hover {
+  transform: translateX(4px);
+  box-shadow: inset 0 0 0 1px var(--border-active);
+  background: linear-gradient(180deg, rgba(30,30,38,.95), rgba(19,19,24,.95));
+}
+/* O visto. É um SVG desenhado no CSS e não o emoji ✅ do briefing: o emoji
+   entra colorido, quebra a paleta em nove pontos da mesma tela e muda de
+   desenho entre Android, iOS e Windows. */
+.item__check {
+  flex-shrink: 0; width: 26px; height: 26px; margin-top: 2px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: rgba(175,146,86,.12); box-shadow: inset 0 0 0 1px var(--border-active);
+  color: var(--gold-light);
+}
+.item__check svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.item__txt b {
+  display: block; font-family: var(--font-title); font-size: 16.5px; font-weight: 700;
+  letter-spacing: .4px; color: var(--text); line-height: 1.25;
+}
+.item__txt span { display: block; margin-top: 5px; color: var(--text-dim); font-size: 14.5px; line-height: 1.55; }
+
+/* =========================================================
+   OS EXTRAS — o bloco de bônus
+   ========================================================= */
+.extras {
+  position: relative; margin-top: 26px; padding: 38px 34px;
+  background: linear-gradient(180deg, rgba(29,24,15,.9), rgba(15,14,12,.94));
+  box-shadow: inset 0 0 0 1px var(--border-active);
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+.extras::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(600px 300px at 50% 0%, rgba(175,146,86,.1), transparent 70%);
+  clip-path: inherit;
+}
+.extras__head { position: relative; text-align: center; margin-bottom: 28px; }
+.extras__head h3 {
+  font-family: var(--font-title); font-size: clamp(22px, 3.2vw, 32px); font-weight: 800;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text); margin-top: 12px;
+}
+.extras__head p { margin-top: 10px; color: var(--text-dim); font-size: 15.5px; }
+.extras__grid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.extra {
+  position: relative; padding: 22px 18px; text-align: center; isolation: isolate;
+  background: rgba(10,10,11,.6); box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  transition: transform var(--t), box-shadow var(--t);
+}
+.extra::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0;
+  background: radial-gradient(220px 180px at var(--mx, 50%) var(--my, 50%), rgba(175,146,86,.16), transparent 70%);
+  clip-path: inherit; transition: opacity var(--t);
+}
+.extra:hover::before { opacity: 1; }
+.extra:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px var(--border-active); }
+.extra__ico { width: 38px; height: 38px; margin: 0 auto 14px; color: var(--gold); }
+.extra__ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.extra b {
+  display: block; font-family: var(--font-title); font-size: 15.5px; font-weight: 800;
+  letter-spacing: .6px; color: var(--gold-light); line-height: 1.25;
+}
+.extra span { display: block; margin-top: 7px; color: var(--text-mute); font-size: 13.5px; line-height: 1.5; }
+
+/* =========================================================
+   ETAPAS — como funciona
+   ========================================================= */
+.etapas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: passo; }
+.etapa { position: relative; padding-top: 30px; }
+/* o fio que liga uma etapa à seguinte. O :last-child não recebe, senão a
+   linha continuaria para fora da última caixa apontando para nada. */
+.etapa::before {
+  content: ''; position: absolute; top: 13px; left: 46px; right: -18px; height: 1px;
+  background: linear-gradient(90deg, var(--border-active), var(--border-soft));
+}
+.etapa:last-child::before { display: none; }
+.etapa__num {
+  position: absolute; top: 0; left: 0;
+  width: 28px; height: 28px; display: grid; place-items: center;
+  background: var(--bg); box-shadow: inset 0 0 0 1px var(--border-active);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  font-family: var(--font-title); font-size: 12px; font-weight: 800; color: var(--gold);
+}
+.etapa h3 {
+  font-family: var(--font-title); font-size: 17px; font-weight: 800;
+  letter-spacing: .5px; color: var(--text); margin-bottom: 9px;
+}
+.etapa p { color: var(--text-dim); font-size: 15px; line-height: 1.6; }
+
+/* =========================================================
+   O PROFESSOR
+   ========================================================= */
+.duo { display: grid; grid-template-columns: .85fr 1.15fr; gap: 54px; align-items: center; }
+.duo__foto { position: relative; }
+.duo__foto img {
+  width: 100%;
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+}
+.duo__foto::before {
+  content: ''; position: absolute; inset: -6%; z-index: -1;
+  background: radial-gradient(circle at 50% 40%, var(--op-halo), transparent 68%);
+}
+/* a placa com o nome, encostada na base da foto */
+.duo__placa {
+  position: absolute; left: 18px; right: 18px; bottom: 18px;
+  padding: 14px 18px; text-align: center;
+  background: rgba(9,9,11,.88);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px var(--border-active);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+.duo__placa b {
+  display: block; font-family: var(--font-title); font-size: 17px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-light);
+}
+.duo__placa span { display: block; margin-top: 3px; font-size: 11.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-mute); }
+.duo__texto p { margin-top: 18px; color: var(--text-dim); font-size: 16.5px; line-height: 1.7; }
+.duo__texto p strong { color: var(--gold-light); }
+.duo__marcas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.duo__marcas span {
+  display: inline-flex; align-items: center; height: 34px; padding: 0 14px;
+  background: rgba(175,146,86,.07); box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  font-size: 11.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);
+}
+
+/* =========================================================
+   COMPARATIVO
+   ---------------------------------------------------------
+   <table> de verdade, e não uma grade de divs: são dois eixos de dado
+   (situação × cenário) com cabeçalho, e é o que faz um leitor de tela
+   anunciar a linha inteira em vez de despejar fragmentos soltos.
+   ========================================================= */
+.tabela-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tabela {
+  width: 100%; min-width: 620px; border-collapse: collapse;
+  background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.tabela th, .tabela td { padding: 17px 20px; text-align: left; border-bottom: 1px solid var(--border-soft); }
+.tabela thead th {
+  font-family: var(--font-title); font-size: 12px; font-weight: 800;
+  letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold);
+  background: rgba(175,146,86,.05);
+}
+.tabela tbody th { font-weight: 700; color: var(--text); font-size: 15.5px; }
+.tabela td { color: var(--text-dim); font-size: 15px; }
+.tabela tr:last-child th, .tabela tr:last-child td { border-bottom: 0; }
+/* a coluna da operação é a que interessa: ela recebe o fio de ouro dos dois
+   lados para se destacar sem precisar de fundo colorido */
+.tabela .col-op { color: var(--text); background: rgba(175,146,86,.05); box-shadow: inset 1px 0 0 var(--border-active), inset -1px 0 0 var(--border-active); }
+.tabela .sim, .tabela .nao { display: inline-flex; align-items: center; gap: 9px; }
+.tabela .sim { color: var(--gold-light); font-weight: 700; }
+.tabela .nao { color: var(--text-mute); }
+.tabela .sim svg, .tabela .nao svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+
+/* =========================================================
+   FAQ
+   ========================================================= */
+.faq { max-width: 880px; margin-inline: auto; display: grid; gap: 12px; }
+.faq__item {
+  background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+  box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  transition: box-shadow var(--t);
+}
+.faq__item[open] { box-shadow: inset 0 0 0 1px var(--border-active); }
+.faq__item summary {
+  position: relative; list-style: none; cursor: pointer;
+  padding: 22px 62px 22px 26px;
+  font-family: var(--font-title); font-size: 17px; font-weight: 700;
+  letter-spacing: 1px; color: var(--text); transition: color var(--t);
+}
+.faq__item summary::-webkit-details-marker { display: none; }
+.faq__item summary:hover { color: var(--gold-light); }
+.faq__item summary::after {
+  content: '+'; position: absolute; right: 26px; top: 50%; transform: translateY(-50%);
+  font-size: 24px; font-weight: 400; color: var(--gold); transition: transform var(--t);
+}
+.faq__item[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+.faq__item p { padding: 0 26px 24px; color: var(--text-dim); font-size: 16px; line-height: 1.7; }
+.faq__item strong { color: var(--gold-light); }
+
+/* =========================================================
+   CTA FINAL
+   ========================================================= */
+.final { position: relative; z-index: 2; padding: 116px 0; overflow: hidden; text-align: center; }
+.final::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(900px 520px at 50% 100%, var(--op-halo), transparent 68%),
+    linear-gradient(180deg, var(--bg), #0D0D10);
+}
+.final::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; z-index: 1;
+  background: linear-gradient(90deg, transparent, var(--border-active), transparent);
+}
+.final__inner { position: relative; z-index: 3; }
+.final .selo { margin-top: 0; margin-bottom: 34px; }
+.final h2 {
+  font-family: var(--font-title);
+  font-size: clamp(30px, 4.8vw, 54px); font-weight: 800; line-height: 1.04;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text);
+}
+.final p { margin: 22px auto 34px; max-width: 60ch; color: var(--text-dim); font-size: 17px; }
+.final__note {
+  display: block; margin-top: 18px; font-size: 12.5px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-mute);
+}
+/* a saída para a outra operação, no fim da página: quem leu tudo e é da outra
+   corporação não pode ter que voltar ao topo para descobrir que ela existe */
+.final__troca {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 30px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text-mute); cursor: pointer;
+  border-bottom: 1px solid var(--border-soft); padding-bottom: 3px;
+  transition: color var(--t), border-color var(--t);
+}
+.final__troca:hover { color: var(--gold-light); border-color: var(--border-active); }
+
+/* =========================================================
+   RODAPÉ
+   ========================================================= */
+.footer { position: relative; z-index: 2; background: #08080A; border-top: 1px solid var(--border); padding: 62px 0 0; }
+.footer__inner { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 34px; padding-bottom: 44px; }
+.footer__leao { display: block; width: 74px; }
+.footer__brand p { margin: 18px 0 20px; color: var(--text-dim); font-size: 15px; font-style: italic; max-width: 40ch; line-height: 1.6; }
+.footer__social { display: flex; flex-wrap: wrap; gap: 10px; }
+.footer__social a {
+  width: 38px; height: 38px; display: grid; place-items: center;
+  color: var(--text-dim); box-shadow: inset 0 0 0 1px var(--border);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  transition: color var(--t), box-shadow var(--t), background var(--t);
+}
+.footer__social a:hover { color: var(--gold); box-shadow: inset 0 0 0 1px var(--border-active); background: rgba(175,146,86,.08); }
+.footer__social svg { width: 17px; height: 17px; fill: currentColor; }
+.footer__col h4 {
+  font-family: var(--font-title); font-size: 13px; font-weight: 800;
+  letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 14px;
+}
+.footer__col a, .footer__col button {
+  display: block; padding: 6px 0; color: var(--text-dim); font-size: 15px;
+  text-align: left; cursor: pointer; transition: color var(--t);
+}
+.footer__col a:hover, .footer__col button:hover { color: var(--gold-light); }
+.footer__bar {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 22px 0 34px; border-top: 1px solid var(--border-soft);
+  font-size: 13.5px; letter-spacing: .6px; color: var(--text-mute);
+}
+.footer__bar strong { color: var(--text-dim); font-weight: 700; }
+.footer__cnpj { letter-spacing: 1.4px; }
+
+/* =========================================================
+   BARRA FIXA (mobile) — 87% do tráfego chega por aqui
+   ---------------------------------------------------------
+   Ela só entra depois da hero: antes disso o próprio CTA da dobra já está na
+   tela e a barra só cobriria conteúdo.
+   ========================================================= */
+.dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 280;
+  display: none; align-items: center; gap: 14px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(9,9,10,.95);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-active);
+  /* visibility junto do transform: só deslocar deixaria o botão fora da tela
+     ainda alcançável pelo Tab. */
+  transform: translateY(110%); visibility: hidden;
+  transition: transform .35s var(--ease), visibility .35s;
+}
+.dock.is-on { transform: none; visibility: visible; }
+.dock__info { flex: 1; min-width: 0; }
+.dock__info b { display: block; font-family: var(--font-title); font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold-light); }
+.dock__info span { display: block; font-size: 11.5px; letter-spacing: 1.4px; color: var(--text-mute); }
+
+/* botão flutuante do WhatsApp */
+.float {
+  position: fixed; right: 18px; bottom: 22px; z-index: 290;
+  width: 54px; height: 54px; display: grid; place-items: center;
+  border-radius: 50%; background: #1FA855; color: #fff;
+  box-shadow: 0 12px 30px -8px rgba(31,168,85,.6);
+  transition: transform var(--t), box-shadow var(--t);
+}
+.float:hover { transform: scale(1.07); box-shadow: 0 16px 36px -8px rgba(31,168,85,.8); }
+.float svg { width: 27px; height: 27px; fill: currentColor; }
+
+/* =========================================================
+   ANIMAÇÕES DE ENTRADA
+   ========================================================= */
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+.anim { opacity: 0; transform: translateY(20px); animation: rise .8s var(--ease) forwards; }
+.d1 { animation-delay: .05s } .d2 { animation-delay: .18s } .d3 { animation-delay: .32s }
+.d4 { animation-delay: .46s } .d5 { animation-delay: .6s }
+@keyframes rise { to { opacity: 1; transform: none; } }
+
+/* =========================================================
+   BRASAS — a camada de atmosfera da página inteira
+   ---------------------------------------------------------
+   As brasas sobem pela viewport o tempo todo, independente de onde a pessoa
+   está — é position: fixed, então elas não rolam junto: sobem através do
+   conteúdo como se a página estivesse sobre um braseiro.
+
+   O z-index é 205: ACIMA das seções (que vivem em 2) e logo abaixo do grão do
+   body (210). Embaixo não adiantaria — as seções pintam fundo opaco por cima
+   e as brasas sumiriam. Navbar (300), dock (280) e o WhatsApp (290) ficam por
+   cima, para nenhuma faísca passar na frente de um controle.
+   ========================================================= */
+.brasas { position: fixed; inset: 0; z-index: 205; pointer-events: none; overflow: hidden; }
+.brasas::after {
+  content: ''; position: absolute; left: 50%; bottom: -12%; transform: translateX(-50%);
+  width: 150%; height: 34%;
+  background: radial-gradient(ellipse at 50% 100%, var(--op-halo), rgba(175,146,86,.045) 42%, transparent 72%);
+  opacity: .45;
+}
+.brasa {
+  position: absolute; bottom: -24px; left: var(--x);
+  width: var(--s); height: var(--s); border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #FFEFC9, var(--cor) 52%, transparent 74%);
+  box-shadow: 0 0 calc(var(--s) * 3) calc(var(--s) * .35) var(--cor);
+  opacity: 0;
+  animation: brasa-sobe var(--dur) linear infinite;
+  animation-delay: var(--atraso);
+  will-change: transform, opacity;
+}
+/* O bailado lateral vive nos keyframes, e não numa segunda animação sobre um
+   elemento aninhado: uma brasa é um ponto de luz de 3px, e um único
+   translate3d por passo já entrega a deriva sem dobrar o número de nós. */
+@keyframes brasa-sobe {
+  0%   { opacity: 0;              transform: translate3d(0, 0, 0)          scale(1); }
+  6%   { opacity: var(--op); }
+  25%  {                          transform: translate3d(16px, -26vh, 0)   scale(.94); }
+  50%  {                          transform: translate3d(-12px, -52vh, 0)  scale(.84); }
+  75%  { opacity: calc(var(--op) * .55);
+                                  transform: translate3d(14px, -78vh, 0)   scale(.68); }
+  100% { opacity: 0;              transform: translate3d(-6px, -104vh, 0)  scale(.5); }
+}
+
+/* faíscas douradas da hero */
+.sparks { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+.spark {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%;
+  background: var(--gold-light); box-shadow: 0 0 10px 2px rgba(201,174,122,.6);
+  opacity: 0; animation: float linear infinite;
+}
+@keyframes float {
+  0%   { opacity: 0; transform: translateY(0) scale(1); }
+  12%  { opacity: .85; }
+  85%  { opacity: .5; }
+  100% { opacity: 0; transform: translateY(-260px) scale(.5); }
+}
+
+/* =========================================================
+   RESPONSIVO
+   ---------------------------------------------------------
+   87% deste tráfego é mobile. As quebras abaixo não são "o desktop
+   espremido": em cada uma delas alguma peça muda de forma, não só de largura.
+   ========================================================= */
+@media (max-width: 1080px) {
+  .nav { display: none; }
+  .opsel { margin-left: auto; }
+  .etapas { grid-template-columns: repeat(2, 1fr); row-gap: 30px; }
+  /* com duas colunas o fio da segunda etapa apontaria para a borda da tela */
+  .etapa:nth-child(2n)::before { display: none; }
+  .extras__grid { grid-template-columns: repeat(2, 1fr); }
+  .footer__inner { grid-template-columns: 1fr 1fr; }
+}
+
+/* ─── O PORTAL VIRA COLUNA ─────────────────────────────────
+   Dois portões lado a lado abaixo de ~860px ficam estreitos demais para o
+   medalhão respirar. Empilhados, a costura só troca de orientação e a cena
+   sobrevive inteira — inclusive a ignição, que é transform e não depende do
+   eixo do layout. */
+@media (max-width: 860px) {
+  .portoes { grid-template-columns: 1fr; grid-template-rows: 1fr auto 1fr; }
+  .portoes__ou {
+    width: 100%; min-height: 44px; justify-self: center;
+  }
+  .portoes__ou::before, .portoes__ou::after {
+    left: 0; right: 0; top: 50%; bottom: auto; width: auto; height: 1px;
+    transform: translateY(-50%);
+  }
+  .portoes__ou::before { right: calc(50% + 24px); left: 0;
+    background: linear-gradient(90deg, transparent, var(--border-active)); }
+  .portoes__ou::after  { left: calc(50% + 24px); right: 0;
+    background: linear-gradient(90deg, var(--border-active), transparent); }
+
+  /* o portão deitado: medalhão à esquerda, texto à direita. Empilhado ele
+     ficaria com 2 telas de altura e o segundo portão sairia da dobra — que é
+     exatamente o que um portal não pode fazer. */
+  .portao {
+    display: grid; grid-template-columns: auto 1fr; align-items: center;
+    gap: 18px; text-align: left; padding: 18px 20px;
+  }
+  .portao__selo { margin: 0; width: clamp(78px, 20vw, 104px); }
+  .portao__entrar { margin-top: 10px; justify-content: flex-start; }
+  .portao__vagas { margin-top: 10px; }
+}
+
+@media (max-width: 920px) {
+  .entrega { grid-template-columns: 1fr; }
+  .duo { grid-template-columns: 1fr; gap: 34px; }
+  .duo__foto { max-width: 400px; margin-inline: auto; }
+  .duo__texto { text-align: center; }
+  .duo__texto .eyebrow { justify-content: center; }
+  .duo__marcas { justify-content: center; }
+  .section__title--left::after { margin-inline: auto; }
+}
+
+@media (max-width: 720px) {
+  body { font-size: 16px; }
+  .section { padding: 74px 0; }
+  .container { width: calc(100% - 32px); }
+
+  .header__inner { width: calc(100% - 24px); gap: 12px; }
+  .brand__nome { font-size: 16px; letter-spacing: 2px; }
+  .brand__nome i { font-size: 8.5px; letter-spacing: 2px; }
+  .header .btn { display: none; }
+  .opsel { height: 36px; padding-left: 11px; gap: 8px; }
+  .opsel b { font-size: 12px; letter-spacing: 1.4px; }
+
+  .hero { min-height: auto; padding-top: calc(var(--nav-h) + 28px); padding-bottom: 58px; }
+  .hero__bg i { opacity: .22; }
+  .hero__cta { flex-direction: column; }
+  .hero__cta .btn { width: 100%; }
+  /* a etiqueta é longa: em tela estreita ela quebra em vez de vazar da caixa */
+  .tag { height: auto; min-height: 38px; padding: 8px 14px; font-size: 10.5px;
+         letter-spacing: 2px; line-height: 1.5; }
+  .scroller { display: none; }
+
+  .ficha { grid-template-columns: repeat(2, 1fr); margin-top: 34px; }
+
+  .etapas { grid-template-columns: 1fr; }
+  .etapa::before { display: none; }
+  .extras { padding: 28px 20px; }
+  .extras__grid { grid-template-columns: 1fr; }
+
+  .dock { display: flex; }
+  /* a dock cobre o fim do rodapé; o respiro extra devolve a última linha */
+  .footer__bar { padding-bottom: 96px; }
+  /* o WhatsApp sobe para não ficar debaixo da dock */
+  .float { bottom: calc(84px + env(safe-area-inset-bottom)); width: 48px; height: 48px; }
+  .float svg { width: 24px; height: 24px; }
+
+  .final { padding: 84px 0; }
+  .final .btn { width: 100%; }
+}
+
+@media (max-width: 420px) {
+  .ficha { grid-template-columns: 1fr 1fr; }
+  .portao { gap: 14px; padding: 16px; }
+  .portao__nome { font-size: 20px; }
+  .portao__sigla { font-size: 26px; }
+  .portao__corp { font-size: 12px; }
+}
+
+/* =========================================================
+   MOVIMENTO REDUZIDO
+   ---------------------------------------------------------
+   Quem pede menos movimento continua vendo a página inteira: o que some é o
+   movimento perpétuo (brasas, aro girando, varreduras) e a cena de entrada.
+   O portal continua funcionando — ele é navegação, não enfeite.
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .reveal, .anim, .portao { opacity: 1 !important; transform: none !important; }
+  .brasas, .sparks, .portal__brasas, .portal__cacos, .portal__scan { display: none; }
+}
+
