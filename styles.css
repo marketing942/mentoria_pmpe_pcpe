@@ -83,8 +83,21 @@
      PMPE é um brasão fechado que some no preto, o da PCPE é um escudo aberto
      com as palavras POLÍCIA CIVIL em caixa alta — no mesmo recuo ele deixa
      letras legíveis atrás do texto da seção e vira ruído, não textura. */
-  --op-marca-x: calc(100% + 320px);
-  --op-marca-h: 560px;
+  /* ─── DE QUE LADO A MARCA ENTRA ─────────────────────────
+     A marca da corporação entra pelo MESMO lado do portão dela no portal:
+     a PMPE pela esquerda, a PCPE pela direita. Não é simetria gratuita — é a
+     única continuidade que sobra entre a tela de escolha e a página. Quem
+     tocou no portão da esquerda continua com a PMPE à esquerda.
+
+     E entra pela METADE, cortada pela borda da tela. Um brasão inteiro
+     centralizado num lado vira ilustração de fundo e disputa com o texto;
+     cortado ao meio, ele lê como marca em relevo no papel.
+
+     O leão vai para o lado oposto, nas seções alternadas, para os dois nunca
+     se empilharem e o olho ganhar um ritmo lateral ao rolar. */
+  --op-marca-x:  -330px;              /* PMPE: entra pela ESQUERDA */
+  --op-marca-h:  660px;
+  --op-leao-x:   calc(100% + 250px);  /* e o leão vai para a direita  */
 }
 
 [data-op="pcpe"] {
@@ -92,8 +105,9 @@
   --op-halo:   rgba(91,140,184,.30);
   --op-marca:  url("public/marca-pcpe.webp");
   --op-brasao: url("public/brasao-pcpe.webp");
-  --op-marca-x: calc(100% + 330px);
-  --op-marca-h: 500px;
+  --op-marca-x:  calc(100% + 300px);  /* PCPE: entra pela DIREITA */
+  --op-marca-h:  600px;
+  --op-leao-x:   -300px;              /* e o leão vai para a esquerda */
 }
 
 /* ─── BASE ─────────────────────────────────────────────── */
@@ -174,13 +188,13 @@ strong, b { font-weight: 700; color: var(--text); }
 }
 .section::before {
   background: var(--op-marca) var(--op-marca-x) 50% / auto var(--op-marca-h) no-repeat;
-  opacity: .05;
+  opacity: .075;
 }
 /* O leão é um desenho grande e de traço grosso: na mesma opacidade da marca
    da corporação ele dominava as seções mais vazias. */
 .section--alt::before {
-  background: url("public/emblema-leao.webp") -290px 50% / auto 620px no-repeat;
-  opacity: .032;
+  background: url("public/emblema-leao.webp") var(--op-leao-x) 50% / auto 620px no-repeat;
+  opacity: .035;
 }
 /* fios de ouro nas duas emendas, num único pseudo */
 .section--alt::after {
@@ -445,7 +459,7 @@ strong, b { font-weight: 700; color: var(--text); }
   width: 58px; min-height: 120px;
   font-family: var(--font-title); font-size: 12px; font-weight: 800;
   letter-spacing: 4px; text-transform: uppercase; color: var(--gold);
-  animation: entra-portal .8s var(--ease) both calc(var(--impacto) + .32s);
+  animation: entra-portal .8s var(--ease) both calc(var(--impacto) + .5s);
 }
 .portoes__ou::before, .portoes__ou::after {
   content: ''; position: absolute; left: 50%; width: 1px; transform: translateX(-50%);
@@ -483,9 +497,25 @@ strong, b { font-weight: 700; color: var(--text); }
 }
 .choque__brasao {
   position: absolute; left: 50%; top: 50%;
-  width: clamp(96px, 15vw, 172px); aspect-ratio: 1; display: block;
+  /* A caixa é quadrada e o desenho dentro dela é `contain`, então cada brasão
+     ocupa só uma FATIA da própria caixa — e uma fatia diferente do outro:
+     357x419 na PMPE, 326x454 na PCPE. Parar os dois no mesmo deslocamento
+     encosta um no centro e deixa o outro a 15px dele.
+
+     Daí o --enc por lado: metade da largura RENDERIZADA de cada desenho
+     (0,5 x proporção), mais um fio de folga para o clarão caber entre eles.
+     Como sai da própria --cx, a distância acompanha o tamanho em qualquer
+     largura de tela — com número fixo, o par encosta certo numa e se
+     atravessa em todas as outras. */
+  --cx: clamp(124px, 19vw, 216px);
+  width: var(--cx); aspect-ratio: 1; display: block;
+  /* opacity 0 na base: sem isto os dois ficam empilhados no centro durante o
+     --vem inteiro, antes do voo começar. Ver também o `both` do voo. */
+  opacity: 0;
   filter: drop-shadow(0 0 26px rgba(0,0,0,.85));
 }
+.choque__brasao--a { --enc: calc(var(--cx) * .435); }   /* 357/419 → .426 + folga */
+.choque__brasao--b { --enc: calc(var(--cx) * .370); }   /* 326/454 → .359 + folga */
 .choque__brasao img { width: 100%; height: 100%; object-fit: contain; }
 
 /* Duas animações por brasão, e não uma só com muitos passos:
@@ -494,39 +524,72 @@ strong, b { font-weight: 700; color: var(--text); }
    keyframe único o easing seria o mesmo para os dois trechos, e a batida
    perderia exatamente o que a torna uma batida.
 
-   O recuo NÃO leva `backwards`: durante o atraso dele o navegador aplicaria
-   o estado inicial já no primeiro quadro e o voo nunca aconteceria. */
+   O VOO leva `both` e o RECUO leva só `forwards`, e a assimetria é o ponto:
+
+   · sem `backwards` no voo, os dois brasões ficam parados e empilhados no
+     meio da tela durante todo o --vem, porque a posição base deles é o
+     centro e o keyframe ainda não vale. É um segundo de duas logos uma em
+     cima da outra antes de qualquer coisa acontecer.
+   · com `backwards` no recuo, o navegador aplicaria o estado inicial dele já
+     no primeiro quadro da página e o voo nunca aconteceria. */
 .choque__brasao--a {
   animation:
-    voa-esq   var(--voo) cubic-bezier(.5,0,.85,.30) var(--vem) forwards,
-    recua-esq .7s        var(--ease)                var(--impacto) forwards;
+    voa-esq   var(--voo) cubic-bezier(.5,0,.85,.30) var(--vem) both,
+    recua-esq .52s       cubic-bezier(.3,0,.2,1)    var(--impacto) forwards;
 }
 .choque__brasao--b {
   animation:
-    voa-dir   var(--voo) cubic-bezier(.5,0,.85,.30) var(--vem) forwards,
-    recua-dir .7s        var(--ease)                var(--impacto) forwards;
+    voa-dir   var(--voo) cubic-bezier(.5,0,.85,.30) var(--vem) both,
+    recua-dir .52s       cubic-bezier(.3,0,.2,1)    var(--impacto) forwards;
 }
 @keyframes voa-esq {
   0%   { opacity: 0; transform: translate(calc(-50% - 62vw), -50%) rotate(-16deg) scale(.72); }
   18%  { opacity: 1; }
-  100% { opacity: 1; transform: translate(calc(-50% - 46px), -50%) rotate(0deg)   scale(1); }
+  100% { opacity: 1; transform: translate(calc(-50% - var(--enc)), -50%) rotate(0deg)   scale(1); }
 }
 @keyframes voa-dir {
   0%   { opacity: 0; transform: translate(calc(-50% + 62vw), -50%) rotate(16deg)  scale(.72); }
   18%  { opacity: 1; }
-  100% { opacity: 1; transform: translate(calc(-50% + 46px), -50%) rotate(0deg)   scale(1); }
+  100% { opacity: 1; transform: translate(calc(-50% + var(--enc)), -50%) rotate(0deg)   scale(1); }
 }
-/* O recuo é para FORA e para os lados dos portões: os brasões saem do
-   impacto na direção de onde os portões vão nascer, e apagam ao chegar. */
+/* ─── o recuo é uma PASSAGEM DE BASTÃO ─────────────────────
+   O brasão não sai do impacto para um lugar qualquer: ele vai para o ponto
+   exato onde o medalhão do portão dele vai estar, encolhendo até o tamanho
+   exato daquele medalhão, e apaga ao chegar. O portão nasce por baixo, no
+   mesmo lugar, e o que se vê é um desenho só se assentando no cartão.
+
+   Antes ele saía para `-24vw`, que não é lugar nenhum: no desktop apagava a
+   meio caminho do cartão e no celular apagava fora dele. Duas logos sumindo
+   fora do lugar onde as logos dos cartões aparecem, e por um instante quatro
+   brasões na tela.
+
+   --dx, --dy e --esc são medidos pelo script.js a partir do medalhão de
+   verdade (ver `mirarPortoes`). Os valores de reserva abaixo servem só para o
+   caso de a medição não rodar — eles empurram para fora e para cima, que é o
+   erro menos feio. */
 @keyframes recua-esq {
-  0%   { opacity: 1; transform: translate(calc(-50% - 46px),  -50%) scale(1); }
-  22%  { opacity: 1; transform: translate(calc(-50% - 130px), -50%) scale(1.06); }
-  100% { opacity: 0; transform: translate(calc(-50% - 24vw),  -50%) scale(.62); }
+  0%   { opacity: 1; transform: translate(calc(-50% - var(--enc)), -50%) scale(1); }
+  20%  { opacity: 1; transform: translate(calc(-50% - var(--enc) - 22px), -50%) scale(1.05); }
+  /* Some antes de chegar, e não ao chegar: o cartão já está desenhando o
+     medalhão dele nos últimos terços da travessia, e dois brasões nítidos no
+     mesmo ponto leem como erro de renderização, não como um virando o outro.
+     Apagando em 62%, o que se vê no fim é só o medalhão do cartão. */
+  62%  { opacity: .08; }
+  100% { opacity: 0;
+         transform: translate(calc(-50% + var(--dx, -22vw)), calc(-50% + var(--dy, -12vh)))
+                    scale(var(--esc, .55)); }
 }
 @keyframes recua-dir {
-  0%   { opacity: 1; transform: translate(calc(-50% + 46px),  -50%) scale(1); }
-  22%  { opacity: 1; transform: translate(calc(-50% + 130px), -50%) scale(1.06); }
-  100% { opacity: 0; transform: translate(calc(-50% + 24vw),  -50%) scale(.62); }
+  0%   { opacity: 1; transform: translate(calc(-50% + var(--enc)), -50%) scale(1); }
+  20%  { opacity: 1; transform: translate(calc(-50% + var(--enc) + 22px), -50%) scale(1.05); }
+  /* Some antes de chegar, e não ao chegar: o cartão já está desenhando o
+     medalhão dele nos últimos terços da travessia, e dois brasões nítidos no
+     mesmo ponto leem como erro de renderização, não como um virando o outro.
+     Apagando em 62%, o que se vê no fim é só o medalhão do cartão. */
+  62%  { opacity: .08; }
+  100% { opacity: 0;
+         transform: translate(calc(-50% + var(--dx, 22vw)), calc(-50% + var(--dy, -12vh)))
+                    scale(var(--esc, .55)); }
 }
 
 /* ─── o clarão ─── */
@@ -552,11 +615,22 @@ strong, b { font-weight: 700; color: var(--text); }
   width: 240px; height: 240px; opacity: 0;
   box-shadow: inset 0 0 0 3px var(--gold-pale);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  animation: onda .9s cubic-bezier(.12,.7,.3,1) var(--impacto) forwards;
+  animation: onda .52s cubic-bezier(.12,.7,.3,1) var(--impacto) forwards;
 }
-.choque__onda--2 { animation-delay: calc(var(--impacto) + .11s); animation-duration: 1.05s; }
+.choque__onda--2 { animation-delay: calc(var(--impacto) + .1s); animation-duration: .64s; }
+/* O anel some em pouco mais de meio segundo, e o motivo é onde ele TERMINA:
+   ampliado sete vezes, um hexágono só mostra os dois lados retos dele, e o
+   que sobra na tela são duas barras verticais altas. Com a onda durando
+   quase um segundo, essas barras ainda estavam cruzando os cartões quando os
+   cartões já estavam assentando — duas réguas de luz atravessando a peça que
+   a pessoa deveria estar lendo.
+
+   A opacidade cai bem antes do fim da escala: o anel cresce até o dobro do
+   que se enxerga dele, e é isso que dá a sensação de que a onda continuou
+   passando depois de sumir. */
 @keyframes onda {
   0%   { opacity: .95; transform: translate(-50%, -50%) scale(.14); }
+  55%  { opacity: .3; }
   100% { opacity: 0;   transform: translate(-50%, -50%) scale(7); }
 }
 
@@ -615,20 +689,30 @@ strong, b { font-weight: 700; color: var(--text); }
   transition: transform .42s var(--freada), box-shadow .32s var(--ease), background .32s var(--ease);
   /* O atraso sai do --impacto: os portões não "aparecem depois da animação",
      eles nascem DA batida. Um número solto aqui se descolaria da cena no
-     primeiro ajuste de tempo que alguém fizesse lá em cima. */
-  animation: portao-entra .85s var(--freada) calc(var(--impacto) + .1s) both;
+     primeiro ajuste de tempo que alguém fizesse lá em cima.
+
+     Os +.26s são o tempo que o brasão leva para atravessar do impacto até o
+     medalhão do cartão (o recuo dura .52s, e ele já está quase transparente
+     na metade). Com o atraso menor, o cartão inteiro já estava desenhado
+     enquanto os dois brasões ainda voavam — quatro brasões na tela ao mesmo
+     tempo, que é exatamente o que a passagem de bastão existe para evitar. */
+  animation: portao-entra .72s var(--freada) calc(var(--impacto) + .26s) both;
 }
 /* Cada um volta para o seu lado — o mesmo eixo por onde o brasão dele veio.
    É translateX, então funciona igual com os portões lado a lado no desktop e
    empilhados no celular: o eixo da animação não depende do eixo do layout. */
 .portao--a { animation-name: portao-entra-esq; }
-.portao--b { animation-name: portao-entra-dir; animation-delay: calc(var(--impacto) + .17s); }
+.portao--b { animation-name: portao-entra-dir; animation-delay: calc(var(--impacto) + .32s); }
+/* O cartão SE ASSENTA — sobe pouco e cresce pouco. Ele não precisa mais vir
+   de lado: quem faz o percurso lateral agora é o brasão, que chega e vira o
+   medalhão dele. Dois movimentos laterais ao mesmo tempo, um por cima do
+   outro, é o que fazia a cena parecer atropelada. */
 @keyframes portao-entra-esq {
-  from { opacity: 0; transform: translate3d(-72px, 14px, 0) scale(.9); }
+  from { opacity: 0; transform: translate3d(-14px, 22px, 0) scale(.965); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes portao-entra-dir {
-  from { opacity: 0; transform: translate3d(72px, 14px, 0) scale(.9); }
+  from { opacity: 0; transform: translate3d(14px, 22px, 0) scale(.965); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -667,7 +751,7 @@ strong, b { font-weight: 700; color: var(--text); }
    vertical — o hexágono simplesmente não aparece. */
 .portao__selo {
   display: block;
-  position: relative; width: clamp(96px, 15vh, 150px); aspect-ratio: 1;
+  position: relative; width: clamp(116px, 19vh, 190px); aspect-ratio: 1;
   margin: 0 auto clamp(14px, 2.4vh, 22px);
 }
 /* ─── por que o aro é DOIS elementos ───────────────────────
@@ -774,7 +858,7 @@ strong, b { font-weight: 700; color: var(--text); }
 .portao__entrar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 
 /* ─── rodapé do portal ─── */
-.portal__bottom { text-align: center; animation: entra-portal .8s var(--ease) both calc(var(--impacto) + .42s); }
+.portal__bottom { text-align: center; animation: entra-portal .8s var(--ease) both calc(var(--impacto) + .6s); }
 .portal__nota {
   font-size: 11.5px; font-weight: 700; letter-spacing: 2.6px;
   text-transform: uppercase; color: var(--text-mute);
@@ -1323,6 +1407,14 @@ html.is-portal .dock, html.is-portal .float { display: none; }
 }
 /* fios de ouro nas duas emendas: o bloco tem que ler como peça encaixada na
    página, e não como banner colado por cima dela */
+/* A marca também aqui: é o bloco mais alto da página e o único sem seção
+   irmã por perto, e sem ela o fundo dele fica liso comparado ao resto. */
+.bonus__marca {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .07;
+  background: var(--op-marca) var(--op-marca-x) 50% / auto 640px no-repeat;
+  mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+}
 .bonus::after {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
@@ -1429,6 +1521,33 @@ html.is-portal .dock, html.is-portal .float { display: none; }
   fill: none; stroke: var(--gold); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
 }
 .bonus__lista b { color: var(--text); }
+
+/* ─── a regra dos dez, por escrito ────────────────────────
+   Deliberadamente sóbrio: sem ouro no fundo, sem chanfro, sem brilho. Ele é o
+   contrapeso do resto do bloco — tudo ali em volta empurra, e este pedaço
+   segura. Se ele parecer mais um argumento de venda, deixa de fazer o
+   trabalho dele, que é impedir alguém de comprar achando que o acesso
+   antecipado está garantido só porque a página está no ar. */
+.regra {
+  margin-top: 26px; padding: 18px 20px;
+  background: rgba(0,0,0,.28);
+  border-left: 2px solid var(--border-active);
+}
+.regra__cab {
+  display: block; margin-bottom: 10px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--text-mute);
+}
+.regra__lista { list-style: none; display: grid; gap: 9px; }
+.regra__lista li {
+  position: relative; padding-left: 16px;
+  color: var(--text-mute); font-size: 13.5px; line-height: 1.55;
+}
+.regra__lista li::before {
+  content: ''; position: absolute; left: 0; top: .62em;
+  width: 5px; height: 5px; background: var(--gold-deep); transform: rotate(45deg);
+}
+.regra__lista b { color: var(--text-dim); font-weight: 700; }
 
 /* ─── o painel dos dez ─────────────────────────────────── */
 .dez {
@@ -1548,19 +1667,69 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
   clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
   padding: clamp(26px, 4vw, 40px) clamp(20px, 3.4vw, 38px);
 }
-.conta { width: 100%; border-collapse: collapse; }
-.conta caption {
-  padding-bottom: 18px;
+/* ─── o número grande é a PARCELA ─────────────────────────
+   O valor cheio entra riscado ACIMA dela, em corpo pequeno, e o à vista
+   embaixo. Na ordem inversa — total na frente, parcela na letra miúda — o
+   primeiro número que a pessoa lê é o maior da página, e ela decide antes de
+   descobrir que dá para dividir. */
+.preco__cab {
+  display: block; text-align: center; padding-bottom: 20px;
   font-size: 10.5px; font-weight: 700; letter-spacing: 4px;
   text-transform: uppercase; color: var(--gold);
 }
-.conta th, .conta td { padding: 13px 0; border-bottom: 1px solid var(--border-soft); text-align: left; }
+.preco__destaque { text-align: center; }
+.preco__de {
+  display: block; font-size: 14px; letter-spacing: 1px; color: var(--text-mute);
+}
+.preco__de s { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--danger); }
+
+.preco__parcela {
+  display: flex; align-items: baseline; justify-content: center; gap: 10px;
+  margin: 4px 0 6px; line-height: .95;
+}
+.preco__parcela i {
+  font-family: var(--font-title); font-style: normal;
+  font-size: clamp(20px, 3.4vw, 30px); font-weight: 700; letter-spacing: 1px;
+  color: var(--text-dim);
+}
+.preco__parcela b {
+  font-family: var(--font-title);
+  font-size: clamp(46px, 8.4vw, 82px); font-weight: 800; letter-spacing: -2px;
+  background: linear-gradient(180deg, var(--gold-pale), var(--gold) 55%, var(--gold-dark));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 6px 22px var(--op-halo));
+}
+.preco__vista {
+  display: block; font-size: 14.5px; color: var(--text-dim); letter-spacing: .4px;
+}
+.preco__vista b { color: var(--gold-light); }
+
+/* ─── a conta, fechada por padrão ─────────────────────────
+   Ela precisa existir: é a mesma tela que a pessoa vai ver no checkout, e
+   bater linha por linha é o que sustenta a confiança no número grande. Mas
+   aberta ela põe quatro valores entre o preço e o botão, e o valor cheio
+   volta a ser a primeira coisa lida. */
+.preco__conta { margin-top: 22px; }
+.preco__conta summary {
+  list-style: none; cursor: pointer; text-align: center; padding: 11px;
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.8px;
+  text-transform: uppercase; color: var(--text-mute);
+  transition: color var(--t), box-shadow var(--t);
+}
+.preco__conta summary::-webkit-details-marker { display: none; }
+.preco__conta summary:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(--border-active); }
+.preco__conta[open] summary { color: var(--gold-light); margin-bottom: 6px; }
+
+.conta { width: 100%; border-collapse: collapse; }
+.conta th, .conta td { padding: 12px 0; border-bottom: 1px solid var(--border-soft); text-align: left; }
 .conta td { text-align: right; font-variant-numeric: tabular-nums; }
-.conta tbody th { font-weight: 600; color: var(--text-dim); font-size: 15.5px; }
-.conta tbody td { color: var(--text); font-size: 16px; }
+.conta tbody th { font-weight: 600; color: var(--text-dim); font-size: 14.5px; }
+.conta tbody th small { display: block; font-size: 12px; color: var(--text-mute); font-weight: 500; }
+.conta tbody td { color: var(--text); font-size: 15px; }
 .conta .risco { color: var(--text-dim); text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--danger); }
 .conta .abate { color: var(--gold-light); }
-/* a etiqueta de desconto, colada na linha do produto */
 .conta .off {
   display: inline-block; margin-left: 10px; padding: 2px 8px;
   background: linear-gradient(120deg, var(--gold-dark), var(--gold));
@@ -1568,16 +1737,14 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
   clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
   vertical-align: 2px;
 }
-.conta .total th, .conta .total td { border-bottom: 0; padding-top: 20px; }
+.conta .total th, .conta .total td { border-bottom: 0; padding-top: 16px; }
 .conta .total th {
-  font-family: var(--font-title); font-size: 13px; font-weight: 800;
-  letter-spacing: 3px; text-transform: uppercase; color: var(--gold);
+  font-family: var(--font-title); font-size: 12.5px; font-weight: 800;
+  letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold);
 }
 .conta .total td {
-  font-family: var(--font-title);
-  font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: -1px; line-height: 1;
-  background: linear-gradient(180deg, var(--gold-pale), var(--gold) 55%, var(--gold-dark));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-family: var(--font-title); font-size: 24px; font-weight: 800;
+  letter-spacing: 0; color: var(--gold-light);
 }
 .preco__economia {
   display: block; margin-top: 20px; padding: 12px;
@@ -1734,6 +1901,12 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
 .final::after {
   content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; z-index: 1;
   background: linear-gradient(90deg, transparent, var(--border-active), transparent);
+}
+.final__marca {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .07;
+  background: var(--op-marca) var(--op-marca-x) 50% / auto 620px no-repeat;
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
 }
 .final__inner { position: relative; z-index: 3; }
 .final .selo { margin-top: 0; margin-bottom: 34px; }
@@ -1945,7 +2118,7 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
     display: grid; grid-template-columns: auto 1fr; align-items: center;
     gap: 18px; text-align: left; padding: 18px 20px;
   }
-  .portao__selo { margin: 0; width: clamp(78px, 20vw, 104px); }
+  .portao__selo { margin: 0; width: clamp(92px, 24vw, 124px); }
   .portao__entrar { margin-top: 10px; justify-content: flex-start; }
   .portao__vagas { margin-top: 10px; }
 
@@ -2029,8 +2202,13 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
      cinco eles continuam contáveis de relance, que é a função deles */
   .pips { max-width: 165px; margin-inline: auto; }
   .preco__caixa { padding: 24px 18px; }
-  .conta tbody th { font-size: 14.5px; }
+  .conta tbody th { font-size: 13.5px; }
+  .conta tbody td, .conta .total td { font-size: 14px; }
+  .conta .total td { font-size: 21px; }
   .conta .off { display: block; margin: 6px 0 0; width: max-content; }
+  .regra { padding: 16px; }
+  /* metade de um brasão de 660px numa tela de 360 vira mancha atrás do texto */
+  .section::before, .bonus__marca, .final__marca { background-size: auto 420px; }
   .extras { padding: 28px 20px; }
   .extras__grid { grid-template-columns: 1fr; }
 

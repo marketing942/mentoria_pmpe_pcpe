@@ -81,32 +81,56 @@ com o conteúdo da **PMPE**, então a página continua coerente se o JS não rod
 
 ## O preço
 
-**R$ 637,00**, igual nas duas operações. O bloco `#preco` é uma `<table>` que
-repete o checkout **linha por linha, na mesma ordem e com os mesmos valores**:
+O número grande da página é a **parcela**: `12x R$ 61`. O valor cheio entra
+riscado acima dela em corpo pequeno, e o à vista logo abaixo. Na ordem inversa
+— total na frente, parcela na letra miúda — o primeiro número que a pessoa lê é
+o maior da página, e ela decide antes de descobrir que dá para dividir.
+
+A conta detalhada continua existindo, dentro de um `<details>` fechado por
+padrão. Ela precisa existir: é a mesma tela que a pessoa vai ver no checkout, e
+bater linha por linha é o que sustenta a confiança no número grande. Mas aberta
+ela põe quatro valores entre o preço e o botão, e o valor cheio volta a ser a
+primeira coisa lida.
 
 | Linha | Valor |
 |---|---|
 | Produto `−56%` | ~~R$ 1.654,00~~ |
-| Com o desconto | R$ 732,36 |
-| Desconto adicional | − R$ 95,36 |
-| **Total** | **R$ 637,00** |
+| Com o desconto | R$ 732,36 · **12x R$ 61,03 sem juros** |
+| Desconto à vista | − R$ 95,36 |
+| **Total à vista** | **R$ 637,00** |
 
-Não é excesso de zelo. Quem clica no CTA cai numa tela que mostra exatamente
-isso, e qualquer arredondamento diferente aqui vira desconfiança no momento em
-que a pessoa vai digitar o cartão. É também por isso que a página **não**
-anuncia um percentual próprio: 1.654 → 637 dá 61,5% de abatimento total, mas o
-checkout estampa `−56%` na linha do produto, e a página que diz "61% off" ao
-lado de um checkout que diz "−56%" contradiz a si mesma. A economia aparece em
-reais — **R$ 1.017,00** — que é o número que fecha nas duas contas.
+### ⚠️ O que foi deduzido, e não informado
 
-Nada de parcelamento está escrito aqui: as condições não foram definidas, e a
-nota abaixo do CTA remete à tela do checkout, onde elas aparecem.
+O checkout entregou quatro valores e a parcela (`12x R$ 61`). O rótulo
+**"Desconto à vista"** na terceira linha é dedução, não informação recebida — e
+é a única aritmética que fecha:
+
+```
+12 × 61,03 = 732,36   ← exatamente a linha "com o desconto"
+732,36 − 95,36 = 637,00
+```
+
+Ou seja: quem parcela paga sobre R$ 732,36; quem paga à vista leva os R$ 95,36
+a menos. É também como o [`../unificados`](../unificados) apresenta o mesmo
+preço ("12x R$ 61 sem juros · R$ 637 à vista"), o que corrobora.
+
+**Se o desconto de R$ 95,36 valer também no parcelado**, o rótulo está errado e
+a linha vira "Desconto adicional" de novo — e a parcela passa a ser
+`12x R$ 53,08`. Vale conferir na tela do checkout antes de publicar.
+
+Pela mesma razão a página **não anuncia percentual próprio**: 1.654 → 637 dá
+61,5% de abatimento, mas o checkout estampa `−56%` na linha do produto, e a
+página que diz "61% off" ao lado de um checkout que diz "−56%" contradiz a si
+mesma. A economia aparece em reais — **R$ 1.017,00** — que é o número que fecha
+nas duas contas.
+
+No JSON-LD vai o **total à vista** (`637.00`), nunca o valor cheio nem o da
+parcela: o Google compara o `price` com o que aparece na tela de pagamento.
 
 Os valores vivem no `CONFIG.ops` como todo o resto. Se um mudar no checkout,
-mudam **três** lugares: o `CONFIG`, o texto estático da `<table>` no
+mudam **três** lugares: o `CONFIG`, o texto estático do bloco no
 [index.html](index.html) (que existe para a página funcionar sem JS) e o
-`offers.price` do JSON-LD no `<head>` — onde vai o **total**, nunca o valor
-cheio nem o de uma parcela.
+`offers.price` do JSON-LD.
 
 ---
 
@@ -137,12 +161,38 @@ núcleo escuro entra por cima recuado 3px; o que sobra nas beiradas é a luz.
 O ciclo dos pips é longo (5s) com a onda ocupando pouco dele: dez luzes
 piscando sem folga viram alarme, e alarme numa página de venda lê como pop-up.
 
-### ⚠️ Os pips não são um contador de vagas restantes
+### ⚠️ A regra, e por que ela está escrita na página
+
+Dentro do bloco existe um quadro sóbrio — sem ouro, sem chanfro, sem brilho —
+chamado **"Como a regra funciona"**. Ele é o contrapeso: tudo em volta empurra,
+e aquele pedaço segura. Diz três coisas, e as três são deliberadas:
+
+1. valem as **10 primeiras compras confirmadas**, somando as duas operações;
+2. **esta página não tem contador** e não sabe quantas já saíram — quem confirma
+   se você entrou no lote é a equipe, no grupo, depois da compra;
+3. se as dez já tiverem saído, **a sua operação continua exatamente a mesma**:
+   a nova plataforma chega na abertura geral, com todo mundo. O acesso
+   antecipado é extra por ordem de chegada, **não parte do que se está
+   comprando**.
+
+O item 3 é o que evita o "no site tava dizendo que eu ia ter acesso". Ele
+desacopla a compra do bônus: ninguém compra *por causa* de uma promessa que a
+empresa não controla, porque a página diz na cara que a compra vale igual sem
+ela. O mesmo texto está repetido no FAQ, onde a pergunta é feita.
+
+> ⚠️ **Não troque esse quadro por "últimas vagas"**, nem por qualquer coisa que
+> sugira que estar lendo a página garante o bônus. Ele existe exatamente para
+> negar isso.
+
+As etiquetas espalhadas pela página seguem a mesma regra: elas dizem "as 10
+primeiras entradas testam a nova plataforma antes", e não "garanta o seu
+acesso" — a primeira descreve um fato, a segunda promete um resultado.
+
+### Os pips não são um contador de vagas restantes
 
 Eles mostram o **tamanho do lote** — dez — e não quantas sobraram. Não existe
 "faltam 3" nesta página, e não deve passar a existir sem um número que venha de
-algum lugar de verdade: este é o bloco onde o comprador mais confia no que lê, e
-escassez inventada aqui contamina tudo que a página diz sobre preço logo abaixo.
+algum lugar de verdade.
 
 Pelo mesmo motivo o texto diz "por ordem de entrada · encerra quando as dez
 saírem", e não um relógio regressivo: a regra é verdadeira e verificável, o
@@ -151,9 +201,9 @@ relógio seria cenário.
 ### Quando as dez acabarem
 
 O bloco sai em quatro cortes — a `<section id="bonus">`, as duas
-`.flag-bonus` (hero e preço), o link `Bônus` da navbar e o
-`.flag-bonus` do CTA final — mais as duas perguntas do FAQ. Nenhum outro
-componente da página depende dele.
+`.flag-bonus` (hero e preço), o link `Bônus` da navbar e o `.flag-bonus` do CTA
+final — mais as duas perguntas do FAQ. Nenhum outro componente da página
+depende dele.
 
 ---
 
@@ -196,14 +246,117 @@ para a cena sair de sincronia.
 > acende antes dos brasões chegarem, ou eles atravessam um o outro e batem no
 > vazio.
 
+### O ponto de encontro é diferente para cada lado
+
+A caixa de cada brasão é quadrada e o desenho dentro dela é `contain`, então
+cada um ocupa só uma **fatia** da própria caixa — e uma fatia diferente do
+outro: `357x419` na PMPE, `326x454` na PCPE. Os dois arquivos são recortados
+justos (nenhuma margem transparente sobrando), então a fatia é pura proporção.
+
+Parar os dois no mesmo deslocamento encosta um no centro e deixa o outro a
+15px dele. Daí o `--enc` por lado, calculado a partir da largura da caixa
+(`--cx`):
+
+| | proporção | metade renderizada | `--enc` |
+|---|---|---|---|
+| PMPE | 357/419 = .852 | .426 × `--cx` | `.435 × --cx` |
+| PCPE | 326/454 = .718 | .359 × `--cx` | `.370 × --cx` |
+
+A folga de ~1% de cada lado é o vão onde o clarão aparece no instante do
+contato. Como tudo sai de `--cx`, a distância acompanha o tamanho em qualquer
+largura de tela — com número fixo o par encosta certo numa e se atravessa em
+todas as outras.
+
+> O **ponto de contato** fica no centro exato da tela, e é dele que saem o
+> clarão, o risco e a onda. A massa dos dois desenhos junta não fica centrada,
+> porque a PMPE é visivelmente mais larga que a PCPE — mas isso é verdade
+> também dentro dos cartões, onde os dois usam o mesmo `contain` numa caixa
+> quadrada. Centrar a massa jogaria o contato para fora do eixo de onde a luz
+> nasce, que é bem pior.
+
+### A passagem de bastão
+
+O brasão não sai do impacto para um lugar qualquer: ele vai para o **ponto
+exato onde o medalhão do portão dele vai estar**, encolhendo até o **tamanho
+exato daquele medalhão**, e apaga ao chegar. O portão nasce por baixo, no mesmo
+lugar, e o que se vê é um desenho só se assentando no cartão.
+
+Três medidas saem do `mirarPortoes()` no [script.js](script.js) e entram como
+variáveis nos keyframes de recuo: `--dx`, `--dy` e `--esc`.
+
+A medição usa `offsetLeft`/`offsetTop`, e **não** `getBoundingClientRect()`: no
+instante em que medimos, o portão está parado no primeiro quadro da entrada
+dele (fill `both`), ou seja, deslocado e reduzido. O rect devolveria essa
+posição temporária; os offsets ignoram `transform` e dão a caixa de layout, que
+é onde o cartão vai realmente ficar.
+
+Ela roda três vezes, e as três valem: **agora** (o layout já existe), quando as
+**fontes carregarem** (elas mudam a altura do texto do cartão, e o cartão
+inteiro sobe ou desce junto) e no **próprio instante da batida**, que é a última
+chance antes de o recuo usar os valores. Mais um `resize`.
+
+> Antes disso o brasão saía para `-24vw`, que não é lugar nenhum: no desktop
+> apagava a meio caminho do cartão e no celular apagava fora dele. Duas logos
+> sumindo longe de onde as logos dos cartões aparecem — e, por um instante,
+> quatro brasões na tela.
+
+O que sustenta a cena são três ajustes que andam juntos, e mexer num sem os
+outros traz o problema de volta:
+
+1. o recuo apaga em **62%** do percurso, não em 100% — o cartão já está
+   desenhando o medalhão no último terço, e dois brasões nítidos no mesmo ponto
+   leem como erro de renderização;
+2. o portão entra em **`--impacto + .26s`**, não `+ .1s` — é o tempo de a
+   travessia acontecer;
+3. o portão **se assenta** (sobe 22px, cresce 3,5%) em vez de vir de lado. Quem
+   faz o percurso lateral agora é o brasão. Dois movimentos laterais ao mesmo
+   tempo, um por cima do outro, é o que fazia a cena parecer atropelada.
+
+### O anel de choque tem prazo curto
+
+Ampliado sete vezes, um hexágono só mostra os dois lados retos dele, e o que
+sobra na tela são **duas barras verticais altas**. Com a onda durando quase um
+segundo, essas barras ainda cruzavam os cartões quando os cartões já estavam
+assentando — duas réguas de luz atravessando a peça que a pessoa deveria estar
+lendo. Hoje a opacidade cai bem antes do fim da escala: o anel cresce até o
+dobro do que se enxerga dele, e é isso que dá a sensação de que a onda continuou
+passando depois de sumir.
+
+### Como conferir que a cena está inteira
+
+Há dois testes no diretório de trabalho desta sessão que valem ser refeitos a
+cada mexida na coreografia: um percorre a cena **quadro a quadro** pausando o
+relógio das animações e mede, em cada instante, quantos brasões estão visíveis,
+se os dois voadores estão empilhados e a que distância cada um está do medalhão
+do cartão dele; o outro amostra a mesma coisa em **tempo real**, sem pausar
+nada, e reporta o pior caso. Os números que a cena entrega hoje, em 1440, 1024,
+390 e 360 de largura:
+
+| | |
+|---|---|
+| tempo com as duas logos empilhadas | **0 ms** |
+| tempo com quatro brasões na tela | **0–34 ms**, e só com os voadores abaixo de 11% de opacidade |
+| distância do voador ao medalhão no fim | **0–1 px** |
+| escala no fim | idêntica à do medalhão do cartão |
+
+Os 30ms com quatro brasões são o cruzamento da passagem de bastão — dois ou
+três quadros em que o que sai está quase transparente. Zerar isso exigiria um
+corte seco, que lê pior do que a transição.
+
 Quatro coisas que quebram se mexidas sem cuidado:
 
-- **Cada brasão tem duas animações, não uma.** O voo tem easing de aceleração
-  (entra devagar, chega rápido — é o que faz ler como massa ganhando
-  velocidade) e o recuo tem easing de saída. Num keyframe único o easing seria
-  o mesmo nos dois trechos, e a batida perderia exatamente o que a torna uma
-  batida. O recuo **não** leva `backwards`: durante o atraso dele o navegador
-  aplicaria o estado inicial já no primeiro quadro e o voo nunca aconteceria.
+- **Cada brasão tem duas animações, não uma, e os fills são diferentes.** O voo
+  tem easing de aceleração (entra devagar, chega rápido — é o que faz ler como
+  massa ganhando velocidade) e o recuo tem easing de saída; num keyframe único
+  o easing seria o mesmo nos dois trechos e a batida perderia o que a torna uma
+  batida. O **voo leva `both`**: sem o `backwards` dele, os dois brasões ficam
+  parados e **empilhados no meio da tela** durante todo o `--vem`, porque a
+  posição base deles é o centro e o keyframe ainda não vale — é um segundo de
+  duas logos uma em cima da outra antes de qualquer coisa acontecer. O **recuo
+  leva só `forwards`**: com `backwards` o navegador aplicaria o estado inicial
+  dele já no primeiro quadro da página e o voo nunca aconteceria. (Os
+  `.choque__brasao` também nascem com `opacity: 0` na regra base, como segunda
+  trava para o mesmo empilhamento.)
 - **Os estilhaços escutam, não calculam.** O `animationend` do voo do brasão da
   esquerda dispara exatamente quando ele chega ao centro. A conta ingênua —
   ler o `--impacto` e comparar com `performance.now()` — erra e erra feio: o
@@ -472,16 +625,36 @@ Se algum arquivo deixar de carregar, a página **não** mostra imagem quebrada: 
 script esconde a `<img>` e escreve a sigla da corporação no mesmo lugar, dentro
 do mesmo medalhão.
 
+### O brasão de fundo, no lado da operação
+
+A marca da corporação entra pelo **mesmo lado do portão dela no portal**: a
+PMPE pela esquerda, a PCPE pela direita. Não é simetria gratuita — é a única
+continuidade que sobra entre a tela de escolha e a página. Quem tocou no portão
+da esquerda continua com a PMPE à esquerda.
+
+E entra **pela metade**, cortada pela borda da tela. Um brasão inteiro
+centralizado num lado vira ilustração de fundo e disputa com o texto; cortado ao
+meio, ele lê como marca em relevo no papel. O leão vai para o lado oposto, nas
+seções alternadas, para os dois nunca se empilharem e o olho ganhar um ritmo
+lateral ao rolar.
+
+Quatro tokens governam isso, e todos trocam com a operação: `--op-marca`,
+`--op-marca-x` (de que lado, e quanto fica para fora), `--op-marca-h` (o
+tamanho) e `--op-leao-x` (o lado oposto). Além das seções, a marca aparece no
+bloco do bônus (`.bonus__marca`) e no CTA final (`.final__marca`) — os dois são
+altos e não têm seção irmã por perto, e sem ela o fundo deles fica liso
+comparado ao resto.
+
 **As marcas são `marca-*`, não `brasao-*`.** O brasão oficial é colorido e,
 mesmo a 5% de opacidade, jogava manchas de cor na direita da seção — a única
 coisa fora da paleta na página inteira. O `marca-*` é o mesmo desenho remapeado
 para a rampa de ouro e some no preto como as outras texturas.
 
-> O recuo da marca (`--op-marca-x`) é token, e não número fixo, porque os dois
-> desenhos têm densidade diferente: o da PMPE é um brasão fechado que some no
-> preto; o da PCPE é um escudo aberto com "POLÍCIA CIVIL" em caixa alta, e no
-> mesmo recuo ele deixa letras legíveis atrás do texto da seção — vira ruído,
-> não textura.
+> O recuo (`--op-marca-x`) é diferente para cada uma porque os dois desenhos
+> têm densidade diferente: o da PMPE é um brasão fechado que some no preto; o
+> da PCPE é um escudo aberto com "POLÍCIA CIVIL" em caixa alta, e no mesmo
+> recuo ele deixaria letras legíveis atrás do texto da seção — vira ruído, não
+> textura.
 
 ---
 

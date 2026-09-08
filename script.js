@@ -37,7 +37,7 @@
         corp:         "Polícia Militar de Pernambuco",
         vagas:        "1.320",
         tag:          "1.320 vagas autorizadas · edital previsto para 2026",
-        dockSub:      "De R$ 1.654 por R$ 637",
+        dockSub:      "12x R$ 61 sem juros",
         brasao:       "public/brasao-pmpe.webp",
         brasaoAlt:    "Brasão da Polícia Militar de Pernambuco",
         precoOff:     "−56%",
@@ -45,6 +45,9 @@
         precoCom:     "R$ 732,36",
         precoAbate:   "− R$ 95,36",
         preco:        "R$ 637,00",
+        parcelas:     "12x",
+        precoParcela: "R$ 61",
+        parcelamento: "(12x R$ 61,03 sem juros)",
         economia:     "R$ 1.017,00",
         checkout:     "https://checkout.cppem.com.br/pay/operacao-praca-pmpe",
         titulo:       "Operação Praça PMPE — mentoria completa para a Polícia Militar de Pernambuco | CPPEM"
@@ -56,7 +59,7 @@
         corp:         "Polícia Civil de Pernambuco",
         vagas:        "1.315",
         tag:          "1.315 vagas autorizadas · edital previsto para 2026",
-        dockSub:      "De R$ 1.654 por R$ 637",
+        dockSub:      "12x R$ 61 sem juros",
         brasao:       "public/brasao-pcpe.webp",
         brasaoAlt:    "Brasão da Polícia Civil de Pernambuco",
         precoOff:     "−56%",
@@ -64,6 +67,9 @@
         precoCom:     "R$ 732,36",
         precoAbate:   "− R$ 95,36",
         preco:        "R$ 637,00",
+        parcelas:     "12x",
+        precoParcela: "R$ 61",
+        parcelamento: "(12x R$ 61,03 sem juros)",
         economia:     "R$ 1.017,00",
         checkout:     "https://checkout.cppem.com.br/pay/operacao-distintivo-pcpe",
         titulo:       "Operação Distintivo PCPE — mentoria completa para a Polícia Civil de Pernambuco | CPPEM"
@@ -117,7 +123,10 @@
       "preco-abate":   op.precoAbate,
       "preco-off":     op.precoOff,
       "economia":      op.economia,
-      "cta-preco":     "Garantir minha vaga por " + op.preco,
+      "parcelas":      op.parcelas,
+      "preco-parcela": op.precoParcela,
+      "parcelamento":  op.parcelamento,
+      "cta-preco":     "Garantir minha vaga por " + op.parcelas + " " + op.precoParcela,
       "outra-sigla":   outra.sigla
     };
 
@@ -287,13 +296,49 @@
      faíscas saem antes dos brasões se encostarem. Escutar o próprio evento
      não tem como sair de sincronia com a cena, porque É a cena.
      ========================================================= */
+  /* ─── a passagem de bastão ────────────────────────────────
+     Cada brasão que voa precisa saber para ONDE ir depois da batida: o ponto
+     exato do medalhão do portão dele, e o tamanho exato daquele medalhão.
+     Sem isso ele apaga a meio caminho, fora do lugar onde a logo do cartão
+     aparece — e por um instante ficam quatro brasões na tela.
+
+     A medição usa `offsetLeft/offsetTop`, e NÃO `getBoundingClientRect()`:
+     no instante em que medimos, o portão está parado no primeiro quadro da
+     entrada dele (`both` de fill), ou seja, deslocado e reduzido. O rect
+     devolveria essa posição temporária; os offsets ignoram transform e dão a
+     caixa de layout, que é onde o cartão vai realmente ficar. */
+  function mirarPortoes() {
+    if (reduced) return;
+    [["a", "pmpe"], ["b", "pcpe"]].forEach(function (par) {
+      var voador = $(".choque__brasao--" + par[0]);
+      var alvo   = $('.portao[data-op="' + par[1] + '"] .portao__core img');
+      if (!voador || !alvo || !alvo.offsetWidth) return;
+
+      var x = 0, y = 0, n = alvo;
+      while (n) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+
+      voador.style.setProperty("--dx", (x + alvo.offsetWidth  / 2 - window.innerWidth  / 2).toFixed(1) + "px");
+      voador.style.setProperty("--dy", (y + alvo.offsetHeight / 2 - window.innerHeight / 2).toFixed(1) + "px");
+      voador.style.setProperty("--esc", (alvo.offsetWidth / voador.offsetWidth).toFixed(3));
+    });
+  }
+
   (function colisao() {
     var alvo   = document.getElementById("choqueCacos");
     var brasao = $(".choque__brasao--a");
     if (!alvo || !brasao || reduced || !portalAberto) return;
 
+    /* Três medições, e as três valem: agora (o layout já existe), quando as
+       fontes carregarem (elas mudam a altura do texto do cartão, e o cartão
+       inteiro sobe ou desce junto) e no próprio instante da batida, que é a
+       última chance antes de o recuo usar os valores. */
+    mirarPortoes();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(mirarPortoes);
+    window.addEventListener("resize", mirarPortoes, { passive: true });
+
     brasao.addEventListener("animationend", function (e) {
       if (e.animationName !== "voa-esq") return;   /* ignora o recuo */
+      mirarPortoes();
       estilhacar(alvo, window.innerWidth / 2, window.innerHeight / 2, 40, 420);
     });
   })();

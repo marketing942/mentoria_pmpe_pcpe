@@ -332,7 +332,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
          lote de dez. -->
     <a class="flag-bonus anim d5" href="#bonus">
       <i aria-hidden="true"></i>
-      <span>Bônus: os <b>10 primeiros</b> entram antes na nova plataforma</span>
+      <span>Bônus: as <b>10 primeiras</b> entradas testam a nova plataforma antes</span>
     </a>
 
     <span class="hero__nota anim d5">Acesso imediato · Suporte de mentores e equipe pedagógica</span>
@@ -495,6 +495,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      ========================================================= -->
 <section class="bonus" id="bonus" aria-labelledby="bonus-title">
   <div class="bonus__radar"  aria-hidden="true"></div>
+  <div class="bonus__marca"  aria-hidden="true"></div>
   <div class="bonus__brasas" id="bonusBrasas" aria-hidden="true"></div>
 
   <div class="container">
@@ -517,7 +518,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
             <p class="bonus__lead">
               Estamos abrindo <strong>10 vagas de teste</strong> da nova plataforma do CPPEM.
-              Quem garantir uma delas usa tudo <strong>antes do lançamento</strong> — e ajuda a
+              Quem entrar no lote usa tudo <strong>antes do lançamento</strong> — e ajuda a
               definir como ela vai chegar para o resto da turma.
             </p>
 
@@ -539,6 +540,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <span>Vale para as <b>duas operações</b>: PMPE e PCPE disputam o mesmo lote de dez</span>
               </li>
             </ul>
+
+            <!-- ─── A REGRA, POR ESCRITO ─────────────────────────────
+                 O bloco existe para uma única finalidade: impedir que alguém
+                 compre achando que o acesso antecipado está garantido pelo
+                 simples fato de a página ainda estar no ar.
+
+                 A página é estática e NÃO sabe quantas vagas já saíram. Dizer
+                 isso na cara, junto com "e se você não entrar, nada muda na
+                 sua operação", é o que separa uma escassez real de uma
+                 promessa que a empresa não controla.
+
+                 ⚠️ Não troque este texto por "últimas vagas" nem por qualquer
+                 coisa que sugira que estar lendo a página garante o bônus. -->
+            <div class="regra">
+              <b class="regra__cab">Como a regra funciona</b>
+              <ul class="regra__lista">
+                <li>Valem as <b>10 primeiras compras confirmadas</b>, somando as duas operações.</li>
+                <li>Esta página <b>não</b> tem contador: ela não sabe quantas já saíram. Quem
+                    confirma se você entrou no lote é a equipe, no grupo, depois da compra.</li>
+                <li>Se as dez já tiverem saído, <b>a sua operação continua exatamente a mesma</b> —
+                    você recebe a nova plataforma na abertura geral, junto com todo mundo.
+                    O acesso antecipado é um extra por ordem de chegada, não parte do que
+                    você está comprando.</li>
+              </ul>
+            </div>
           </div>
 
           <div class="dez">
@@ -570,8 +596,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span class="eyebrow">O investimento</span>
       <h2 class="section__title" id="preco-title">O que custa <span class="gold">entrar</span></h2>
       <p class="section__lead">
-        A conta abaixo é a mesma que vai aparecer no checkout, linha por linha.
-        Sem letra miúda e sem valor que muda de tela para tela.
+        Um valor, e ele é o mesmo da tela de pagamento. A conta detalhada está
+        logo abaixo, item por item, igual à que o checkout mostra — sem letra
+        miúda e sem número que muda de tela para tela.
       </p>
     </div>
 
@@ -583,45 +610,69 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
            O texto estático abaixo é o da PMPE, para a página continuar
            coerente sem JS. Se um valor mudar no checkout, mudam TRÊS
            lugares: o CONFIG, este HTML e o "offers.price" do JSON-LD. -->
-      <table class="conta">
-        <caption data-slot="nome-completo">Operação Praça PMPE</caption>
-        <tbody>
-          <tr>
-            <th scope="row">Produto <span class="off" data-slot="preco-off">−56%</span></th>
-            <td><span class="risco" data-slot="preco-de">R$ 1.654,00</span></td>
-          </tr>
-          <tr>
-            <th scope="row">Com o desconto</th>
-            <td data-slot="preco-com">R$ 732,36</td>
-          </tr>
-          <tr>
-            <th scope="row">Desconto adicional</th>
-            <td class="abate" data-slot="preco-abate">− R$ 95,36</td>
-          </tr>
-          <tr class="total">
-            <th scope="row">Total</th>
-            <td data-slot="preco">R$ 637,00</td>
-          </tr>
-        </tbody>
-      </table>
+      <span class="preco__cab" data-slot="nome-completo">Operação Praça PMPE</span>
+
+      <!-- A PARCELA é o número grande, e o valor cheio vem riscado em cima
+           dela em corpo pequeno. Invertido — o total na frente e a parcela na
+           letra miúda — o primeiro número que a pessoa lê é o maior da
+           página, e ela decide antes de descobrir que dá para dividir. -->
+      <div class="preco__destaque">
+        <span class="preco__de">de <s data-slot="preco-de">R$ 1.654,00</s> por</span>
+        <span class="preco__parcela">
+          <i data-slot="parcelas">12x</i>
+          <b data-slot="preco-parcela">R$ 61</b>
+        </span>
+        <span class="preco__vista">
+          sem juros no cartão · ou <b data-slot="preco">R$ 637,00</b> à vista
+        </span>
+      </div>
 
       <span class="preco__economia">Você economiza <b data-slot="economia">R$ 1.017,00</b></span>
 
+      <!-- A conta fechada por padrão. Ela precisa existir — é a mesma tela que
+           a pessoa vai ver no checkout, e bater linha por linha é o que
+           sustenta a confiança no número grande lá em cima. Mas aberta ela
+           coloca quatro valores entre o preço e o botão, e o valor cheio
+           volta a ser a primeira coisa lida. -->
+      <details class="preco__conta">
+        <summary>Ver a conta como ela aparece no checkout</summary>
+        <table class="conta">
+          <tbody>
+            <tr>
+              <th scope="row">Produto <span class="off" data-slot="preco-off">−56%</span></th>
+              <td><span class="risco" data-slot="preco-de">R$ 1.654,00</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Com o desconto <small data-slot="parcelamento">(12x R$ 61,03 sem juros)</small></th>
+              <td data-slot="preco-com">R$ 732,36</td>
+            </tr>
+            <tr>
+              <th scope="row">Desconto à vista</th>
+              <td class="abate" data-slot="preco-abate">− R$ 95,36</td>
+            </tr>
+            <tr class="total">
+              <th scope="row">Total à vista</th>
+              <td data-slot="preco">R$ 637,00</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+
       <div class="preco__cta">
         <a class="btn btn--gold btn--lg btn--block shine" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe">
-          <span>Garantir minha vaga</span>
+          <span data-slot="cta-preco">Garantir minha vaga por 12x R$ 61</span>
         </a>
       </div>
       <span class="preco__nota">
         Checkout oficial CPPEM · acesso imediato após a confirmação.<br>
-        As formas de pagamento e o parcelamento aparecem na tela do checkout.
+        As formas de pagamento aparecem na tela do checkout.
       </span>
     </div>
 
     <div class="center" style="margin-top:30px">
       <a class="flag-bonus" href="#bonus">
         <i aria-hidden="true"></i>
-        <span>Entre os <b>10 primeiros</b>? Leva o acesso antecipado à nova plataforma</span>
+        <span>As <b>10 primeiras</b> entradas testam a nova plataforma antes · veja a regra</span>
       </a>
     </div>
   </div>
@@ -820,17 +871,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <details class="faq__item">
         <summary>Como eu sei se fiquei entre os 10 do acesso antecipado?</summary>
         <p>
-          É por <strong>ordem de entrada</strong>: as dez primeiras compras confirmadas — levam o acesso antecipado à nova plataforma. Quem entrar
-          no lote é avisado pela equipe no grupo exclusivo, junto com as instruções de
-          acesso. Fechadas as dez, o bônus sai do ar até a abertura geral.
+          É por <strong>ordem de entrada</strong>: as dez primeiras compras confirmadas — somando
+          as duas operações — levam o acesso antecipado. Quem entrar no lote é avisado
+          pela equipe no grupo exclusivo, junto com as instruções de acesso.
+          <br><br>
+          Esta página <strong>não</strong> tem contador e não sabe quantas vagas já saíram, então
+          ela não pode prometer que você é um dos dez — só a confirmação da equipe diz isso.
+          E se as dez já tiverem saído, <strong>não muda nada na sua operação</strong>: você recebe
+          a nova plataforma na abertura geral, com todo mundo. O acesso antecipado é um
+          extra por ordem de chegada, não parte do que você está comprando.
         </p>
       </details>
       <details class="faq__item">
         <summary>O acesso antecipado custa alguma coisa a mais?</summary>
         <p>
           Não. Ele entra <strong>junto com a sua operação</strong>, sem valor à parte e sem
-          troca de plano. Você paga os mesmos <strong data-slot="preco">R$ 637,00</strong> de quem
-          entrar depois — a diferença é só chegar antes.
+          troca de plano. Você paga o mesmo que quem entrar depois — a diferença é só
+          chegar antes.
         </p>
       </details>
       <details class="faq__item">
@@ -847,6 +904,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ================= CTA FINAL ================= -->
 <section class="final">
+  <div class="final__marca" aria-hidden="true"></div>
   <div class="container final__inner">
     <div class="selo">
       <span class="selo__aro" aria-hidden="true"></span>
@@ -862,14 +920,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </p>
 
     <a class="btn btn--gold btn--lg shine" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe">
-      <span data-slot="cta-preco">Garantir minha vaga por R$ 637,00</span>
+      <span data-slot="cta-preco">Garantir minha vaga por 12x R$ 61</span>
     </a>
-    <span class="final__note">De <span data-slot="preco-de">R$ 1.654,00</span> por <span data-slot="preco">R$ 637,00</span> · checkout oficial CPPEM · acesso imediato</span>
+    <span class="final__note"><span data-slot="parcelas">12x</span> <span data-slot="preco-parcela">R$ 61</span> sem juros ou <span data-slot="preco">R$ 637,00</span> à vista · checkout oficial CPPEM</span>
 
     <div>
       <a class="flag-bonus" href="#bonus">
         <i aria-hidden="true"></i>
-        <span>As <b>10 primeiras</b> entradas levam o acesso antecipado à nova plataforma</span>
+        <span>As <b>10 primeiras</b> entradas testam a nova plataforma antes · veja a regra</span>
       </a>
     </div>
 
@@ -947,7 +1005,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="dock" id="dock">
   <div class="dock__info">
     <b data-slot="nome">Praça PMPE</b>
-    <span data-slot="dock-sub">De R$ 1.654 por R$ 637</span>
+    <span data-slot="dock-sub">12x R$ 61 sem juros</span>
   </div>
   <a class="btn btn--gold" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe"><span>Garantir vaga</span></a>
 </div>
