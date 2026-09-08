@@ -19,7 +19,7 @@
      uma só — quem cai aqui pela busca ainda não escolheu lado. -->
 <title>Operação Praça PMPE e Operação Distintivo PCPE — mentoria completa | CPPEM</title>
 <meta name="description" content="Mentoria completa para PMPE e PCPE com o Prof. Everton Mota: mentorias ao vivo mensais, cronograma individualizado, videoaulas e PDFs, metas diárias, TAF, psicotécnico e plataforma com IA. Escolha a sua operação e garanta a sua vaga.">
-<link rel="canonical" href="https://operacao.cppem.com.br/">
+<link rel="canonical" href="https://mentoria.cppem.com.br/">
 
 <!-- Favicon: o Google só aceita QUADRADO e com lado múltiplo de 48px. -->
 <link rel="icon" href="public/favicon.ico" sizes="48x48">
@@ -34,10 +34,10 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CPPEM Concursos Públicos">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:url" content="https://operacao.cppem.com.br/">
+<meta property="og:url" content="https://mentoria.cppem.com.br/">
 <meta property="og:title" content="Operação Praça PMPE · Operação Distintivo PCPE">
 <meta property="og:description" content="Duas corporações, um método. Mentoria ao vivo com o Prof. Everton Mota, cronograma individualizado, TAF, psicotécnico e plataforma com IA. Escolha o seu lado.">
-<meta property="og:image" content="https://operacao.cppem.com.br/public/og-operacao.jpg">
+<meta property="og:image" content="https://mentoria.cppem.com.br/public/og-operacao.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Operação Praça PMPE e Operação Distintivo PCPE, do CPPEM Concursos.">
@@ -45,7 +45,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Operação Praça PMPE · Operação Distintivo PCPE">
 <meta name="twitter:description" content="Duas corporações, um método. Mentoria completa com o Prof. Everton Mota até a aprovação.">
-<meta name="twitter:image" content="https://operacao.cppem.com.br/public/og-operacao.jpg">
+<meta name="twitter:image" content="https://mentoria.cppem.com.br/public/og-operacao.jpg">
 
 <!-- Dois produtos = dois Course. Um array de dois objetos é a forma correta:
      empacotar as duas operações num Course só faria o Google anunciar um
@@ -150,17 +150,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="portal__flash"  id="portalFlash"  aria-hidden="true"></div>
   <div class="portal__cacos"  id="portalCacos"  aria-hidden="true"></div>
 
+  <!-- ─── A COLISÃO ────────────────────────────────────────────
+       Os dois brasões entram cada um do seu lado, se encontram no meio da
+       tela e batem. Da batida saem o clarão, a onda de choque, o risco de
+       luz, os estilhaços e o tranco na tela inteira — e é do ponto do
+       impacto que os dois portões nascem, cada um voltando para o seu lado.
+
+       Esta camada morre depois da cena (os brasões apagam em ~1,7s). Ela
+       existe só para a entrada; o que fica de pé são os portões.
+
+       Toda a marcação de tempo mora em quatro variáveis na .portal, no
+       ancestral comum de tudo que participa da cena. Ver o styles.css. -->
+  <div class="choque" id="choque" aria-hidden="true">
+    <i class="choque__brasao choque__brasao--a">
+      <img src="public/brasao-pmpe.webp" alt="" width="357" height="419">
+    </i>
+    <i class="choque__brasao choque__brasao--b">
+      <img src="public/brasao-pcpe.webp" alt="" width="326" height="454">
+    </i>
+    <i class="choque__clarao"></i>
+    <i class="choque__onda"></i>
+    <i class="choque__onda choque__onda--2"></i>
+    <i class="choque__risco"></i>
+  </div>
+  <div class="choque__cacos" id="choqueCacos" aria-hidden="true"></div>
+
   <div class="portal__top">
     <span class="portal__marca">
-      <img src="public/emblema-leao.webp" alt="" width="400" height="465">
-      <span><b>CPPEM</b><i>Concursos Públicos</i></span>
+      <img src="public/emblema-leao.webp" alt="CPPEM Concursos Públicos" width="400" height="465">
     </span>
 
     <div class="portal__chamada">
       <span class="eyebrow">Escolha a sua operação</span>
       <h1 id="portal-title">Duas corporações.<br>Um <span class="gold">método</span> só.</h1>
-      <p>A mesma mentoria do Prof. Everton Mota, montada peça por peça para o edital
-         que <strong>você</strong> vai enfrentar. Toque no seu lado.</p>
     </div>
   </div>
 
@@ -290,11 +312,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </span>
     </div>
 
-    <p class="hero__sub anim d4">
-      A preparação completa para a <strong data-slot="corp">Polícia Militar de Pernambuco</strong>:
-      mentoria ao vivo com o Prof. Everton Mota, cronograma feito para a
-      <strong>sua</strong> rotina, TAF, psicotécnico e uma plataforma com IA treinada
-      para estudar do seu lado — até a aprovação.
+    <!-- Uma linha, e não um parágrafo: a dobra do celular tem que caber o
+         nome da operação, o medalhão e o BOTÃO. Tudo que o subtítulo dizia
+         está três blocos abaixo, em "O que você recebe" — aqui ele só
+         atrasava o CTA. -->
+    <p class="hero__sub anim d4" data-slot="hero-sub">
+      A preparação completa para a Polícia Militar de Pernambuco — do primeiro dia à posse.
     </p>
 
     <div class="hero__cta anim d5">
@@ -604,43 +627,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<!-- ================= COMO FUNCIONA ================= -->
-<section class="section section--alt" id="metodo" aria-labelledby="metodo-title">
-  <div class="container">
-    <div class="section__head">
-      <span class="eyebrow">Do primeiro dia à posse</span>
-      <h2 class="section__title" id="metodo-title">Como a operação <span class="gold">funciona</span></h2>
-      <p class="section__lead">
-        Quatro movimentos. Do momento em que você entra até o dia em que a sua
-        classificação sai no Diário Oficial.
-      </p>
-    </div>
-
-    <div class="etapas">
-      <div class="etapa">
-        <span class="etapa__num" aria-hidden="true">1</span>
-        <h3>Diagnóstico</h3>
-        <p>A gente mapeia de onde você parte: tempo disponível, base em cada matéria e a data que você tem pela frente.</p>
-      </div>
-      <div class="etapa">
-        <span class="etapa__num" aria-hidden="true">2</span>
-        <h3>O seu cronograma</h3>
-        <p>Sai um plano com o seu nome, distribuído nas horas que você realmente tem — com metas diárias fechadas.</p>
-      </div>
-      <div class="etapa">
-        <span class="etapa__num" aria-hidden="true">3</span>
-        <h3>Execução acompanhada</h3>
-        <p>Aulas, questões, simulados e revisões. Os gráficos mostram a curva e a mentoria ao vivo corrige a rota todo mês.</p>
-      </div>
-      <div class="etapa">
-        <span class="etapa__num" aria-hidden="true">4</span>
-        <h3>Reta final e as outras fases</h3>
-        <p>Revisão dirigida para a prova, preparação de TAF e psicotécnico. A aprovação é o edital inteiro, não só a objetiva.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ================= O PROFESSOR ================= -->
 <section class="section" id="professor" aria-labelledby="prof-title">
   <div class="container">
@@ -655,11 +641,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div class="duo__texto duo__col">
         <span class="eyebrow">Quem conduz</span>
-        <h2 class="section__title section__title--left" id="prof-title">Você vai ser cobrado por <span class="gold">gente</span>, não por plataforma</h2>
+        <h2 class="section__title section__title--left" id="prof-title">A plataforma trabalha por você. E tem <span class="gold">gente</span> junto</h2>
         <p>
-          A mentoria ao vivo é <strong>com o professor</strong> — não com uma gravação de
-          três anos atrás. Todo mês ele senta com a turma, olha o que aconteceu no mês
-          e diz o que muda no mês seguinte.
+          A plataforma monta o seu cronograma, mede a sua evolução matéria por matéria
+          e responde a dúvida que aparece às onze da noite. Ela faz muita coisa — e faz bem.
+        </p>
+        <p>
+          O que ela não faz é olhar para o seu mês e dizer o que muda no próximo.
+          Isso é a <strong>mentoria ao vivo com o Prof. Everton Mota</strong>, todo mês,
+          junto com os mentores e a equipe pedagógica no grupo o resto do tempo.
         </p>
         <p>
           É de onde sai o <strong>Método MDT</strong>: Mentalidade, Disciplina e Técnica.
@@ -669,6 +659,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="duo__marcas">
           <span>14 mil aprovados</span>
           <span>Mentoria ao vivo mensal</span>
+          <span>Plataforma com IA</span>
           <span>Equipe pedagógica própria</span>
         </div>
       </div>
@@ -676,7 +667,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<!-- ================= COMPARATIVO ================= -->
+<!-- =========================================================
+     COMPARATIVO
+     ---------------------------------------------------------
+     <table> de verdade: são dois eixos de dado (situação × cenário) com
+     cabeçalho, e é o que faz um leitor de tela anunciar a linha inteira em
+     vez de despejar fragmentos soltos.
+
+     No celular ela deixa de ser tabela e vira uma pilha de cartões — cada
+     linha com a situação no topo e as duas respostas empilhadas, cada uma
+     rotulada pelo data-col. É o único jeito de ler três colunas em 360px sem
+     rolagem lateral, e rolagem lateral numa comparação é onde a comparação
+     morre: a pessoa nunca vê as duas respostas ao mesmo tempo.
+     ========================================================= -->
 <section class="section section--alt" id="comparativo" aria-labelledby="comp-title">
   <div class="container">
     <div class="section__head">
@@ -688,50 +691,78 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </p>
     </div>
 
-    <div class="tabela-wrap">
-      <table class="tabela">
+    <div class="vs-wrap">
+      <table class="vs">
         <thead>
           <tr>
-            <th scope="col">Situação</th>
-            <th scope="col" class="col-op">Na operação</th>
-            <th scope="col">Por conta própria</th>
+            <th scope="col"><span class="sr-only">Situação</span></th>
+            <th scope="col" class="vs__cab vs__cab--sim">Na operação</th>
+            <th scope="col" class="vs__cab">Por conta própria</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <th scope="row">O que estudar hoje</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>Meta do dia já definida</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Você decide toda manhã</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Meta do dia já definida</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Você decide toda manhã</span>
+            </td>
           </tr>
           <tr>
             <th scope="row">Cronograma</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>Individualizado, refeito quando a rotina muda</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Planilha genérica da internet</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Individualizado, refeito quando a rotina muda</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Planilha genérica da internet</span>
+            </td>
           </tr>
           <tr>
             <th scope="row">Correção de rota</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>Mentoria ao vivo todo mês</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Só no resultado da prova</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Mentoria ao vivo todo mês</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Só no resultado da prova</span>
+            </td>
           </tr>
           <tr>
             <th scope="row">Dúvida às 23h</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>IA treinada no material + grupo</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Fórum, vídeo aleatório, sorte</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>IA treinada no material + grupo de mentores</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Fórum, vídeo aleatório, sorte</span>
+            </td>
           </tr>
           <tr>
             <th scope="row">Evolução</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>Gráficos por matéria</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Sensação de que está indo bem</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Gráficos por matéria</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Sensação de que está indo bem</span>
+            </td>
           </tr>
           <tr>
             <th scope="row">TAF e psicotécnico</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>Mentoria própria para cada fase</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Descoberto na véspera</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Mentoria própria para cada fase</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Descoberto na véspera</span>
+            </td>
           </tr>
           <tr>
             <th scope="row">Material</th>
-            <td class="col-op"><span class="sim"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>Apostila, Vade Mecum e caderno de questões inclusos</span></td>
-            <td><span class="nao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Comprados soltos, um a um</span></td>
+            <td class="vs__sim" data-col="Na operação">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Apostila, Vade Mecum e caderno inclusos</span>
+            </td>
+            <td class="vs__nao" data-col="Por conta própria">
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Comprados soltos, um a um</span>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -789,8 +820,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <details class="faq__item">
         <summary>Como eu sei se fiquei entre os 10 do acesso antecipado?</summary>
         <p>
-          É por <strong>ordem de entrada</strong>: as dez primeiras compras confirmadas — somando
-          as duas operações — levam o acesso antecipado à nova plataforma. Quem entrar
+          É por <strong>ordem de entrada</strong>: as dez primeiras compras confirmadas — levam o acesso antecipado à nova plataforma. Quem entrar
           no lote é avisado pela equipe no grupo exclusivo, junto com as instruções de
           acesso. Fechadas as dez, o bônus sai do ar até a abertura geral.
         </p>

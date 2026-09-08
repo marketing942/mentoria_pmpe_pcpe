@@ -9,6 +9,9 @@ corporação antes de ver qualquer oferta.
 | **Operação Praça PMPE** — Polícia Militar de Pernambuco | `.../pay/operacao-praca-pmpe` |
 | **Operação Distintivo PCPE** — Polícia Civil de Pernambuco | `.../pay/operacao-distintivo-pcpe` |
 
+No ar em **`mentoria.cppem.com.br`** — o mesmo endereço no `canonical` e no
+`og:url`.
+
 Página estática: `index.html` + `styles.css` + `script.js`, no sistema visual
 de [`../unificados`](../unificados) e [`../livepmpe`](../livepmpe) — Oxanium +
 Rajdhani, ouro `#AF9256` sobre preto `#0A0A0B`, cantos chanfrados de operação,
@@ -25,12 +28,7 @@ WhatsApp e no Instagram sai sem imagem — e é por aí que a maior parte deste
 tráfego chega. O molde de [`../livepmpe/og.html`](../livepmpe/og.html) serve de
 ponto de partida.
 
-### 2. Domínio
-
-`<link rel="canonical">` e `og:url` estão em `https://operacao.cppem.com.br/`.
-Confirme o endereço final — os dois precisam apontar para o **mesmo** lugar.
-
-### 3. Número de vagas
+### 2. Número de vagas
 
 `1.320` (PMPE) e `1.315` (PCPE) vieram de [`../unificados`](../unificados) e
 somam as 2.635 que a página do [`../livepmpe`](../livepmpe) anuncia. Se o
@@ -171,6 +169,61 @@ antes de qualquer seção, ele não espera o site inteiro montar. E é
 scroll travado, e um portal no fluxo empurraria a hero para 100vh de distância
 — a primeira rolagem depois da escolha cairia no vazio.
 
+### A colisão de entrada
+
+No carregamento os dois brasões atravessam a tela, cada um do seu lado, e
+**batem no meio**. Da batida saem o clarão, duas ondas de choque hexagonais, um
+risco de luz que rasga a tela na horizontal, quarenta estilhaços e um tranco na
+página inteira — e é do ponto do impacto que os dois portões nascem, voltando
+cada um para o seu lado.
+
+A leitura é literal: as duas corporações se encontram, e a escolha é o que
+sobra do encontro. Por isso os portões entram por `translateX` a partir do
+centro, e não subindo de baixo: subir seria uma entrada; voltar do impacto é
+uma consequência.
+
+A ordem da cena — e ela é a razão de tudo abaixo:
+**leão → manchete → os dois brasões vêm → BATIDA → os portões nascem → "ou" → rodapé.**
+
+A marcação de tempo inteira sai de **três variáveis na `.portal`**
+([styles.css](styles.css)): `--vem` (quando os brasões começam a vir), `--voo`
+(quanto levam para atravessar) e `--impacto` (`--vem + --voo`, o instante da
+batida). Elas moram no ancestral comum de tudo que participa da cena porque são
+ramos diferentes da árvore: com uma cópia em cada um, bastava ajustar um lado
+para a cena sair de sincronia.
+
+> `--vem + --voo` **tem** que fechar em `--impacto`. Se não fechar, ou o clarão
+> acende antes dos brasões chegarem, ou eles atravessam um o outro e batem no
+> vazio.
+
+Quatro coisas que quebram se mexidas sem cuidado:
+
+- **Cada brasão tem duas animações, não uma.** O voo tem easing de aceleração
+  (entra devagar, chega rápido — é o que faz ler como massa ganhando
+  velocidade) e o recuo tem easing de saída. Num keyframe único o easing seria
+  o mesmo nos dois trechos, e a batida perderia exatamente o que a torna uma
+  batida. O recuo **não** leva `backwards`: durante o atraso dele o navegador
+  aplicaria o estado inicial já no primeiro quadro e o voo nunca aconteceria.
+- **Os estilhaços escutam, não calculam.** O `animationend` do voo do brasão da
+  esquerda dispara exatamente quando ele chega ao centro. A conta ingênua —
+  ler o `--impacto` e comparar com `performance.now()` — erra e erra feio: o
+  relógio das animações de CSS começa quando o elemento é renderizado, e o do
+  `performance.now()` na navegação. Numa página que leva 400 ms para pintar os
+  dois ficam 400 ms fora de fase e as faíscas saem antes dos brasões se
+  encostarem.
+- **O tranco usa `backwards`, não `both`.** Com `both`, o `transform: none` do
+  último quadro ficaria fixado para sempre e o `.is-gone { transform:
+  scale(1.14) }` da saída do portal nunca sairia do lugar.
+- **Os textos do portal usam `entra-portal`, não `rise`.** O `rise` só declara
+  o `to`, e o preenchimento `backwards` de um keyframe sem `from` herda o
+  estado atual do elemento — opacity 1. Com atraso curto ninguém via; com o
+  atraso ancorado no impacto, o rodapé e o "ou" apareciam **antes** da colisão.
+
+Os brasões da cena são decorativos (`alt=""`): os mesmos dois desenhos são
+anunciados logo abaixo, dentro dos portões, com nome de corporação e tudo.
+Repetir aqui faria um leitor de tela ouvir quatro brasões numa tela que tem
+dois.
+
 ### Detalhes que não são estilo pessoal
 
 - **Os portões são `<button>`, não `<a>`.** A escolha não navega para outro
@@ -248,6 +301,42 @@ Existem três saídas, e as três são necessárias:
 
 ---
 
+## Decisões de conteúdo
+
+Coisas que a página deliberadamente **não** tem, e o porquê:
+
+**O portal não tem parágrafo, e a marca não tem wordmark.** O leão é a marca —
+grande, sozinho, sem "CPPEM / Concursos Públicos" ao lado. Numa tela cujo
+assunto é escolher entre duas corporações, um terceiro nome disputava a leitura
+com os dois que importam. O parágrafo explicativo saiu pela mesma razão: quem
+chega aqui tem uma decisão para tomar, não um texto para ler.
+
+**O subtítulo da hero é uma linha.** Era um parágrafo de cinco linhas que
+listava tudo que a operação entrega — e empurrava o botão de checkout para fora
+da primeira dobra do celular. Tudo que ele dizia está três blocos abaixo, em "O
+que você recebe". Aqui ele só atrasava o CTA.
+
+**Os nove entregáveis ficam em três colunas.** Em duas, o nono sobrava sozinho
+na quinta fileira, e um órfão numa lista de benefícios lê como item esquecido,
+não como item extra. Três colunas fecham em três fileiras exatas. Na faixa de
+tablet (≤1080px) são duas colunas com o último item ocupando a largura inteira
+— a sobra vira fecho da lista em vez de buraco no canto.
+
+**Não existe seção "Como a operação funciona".** As quatro etapas que ela
+descrevia repetiam, em outra ordem, o que a lista de entregáveis já diz — e
+ficavam entre o bônus e o preço, que é o trecho onde a página menos pode
+divagar.
+
+**O bloco do professor não fala mal da plataforma.** Ele dizia "você vai ser
+cobrado por gente, **não** por plataforma", e a plataforma é parte do que se
+está vendendo três blocos acima. Agora o texto reconhece o que ela faz —
+cronograma, gráficos, IA que responde às onze da noite — e posiciona a mentoria
+ao vivo como o que ela não faz: olhar para o seu mês e dizer o que muda no
+próximo.
+
+
+---
+
 ## Mobile
 
 **87% deste tráfego é celular**, e as quebras não são "o desktop espremido" —
@@ -261,7 +350,12 @@ em cada uma alguma peça muda de forma:
 - **≤ 920px** · a lista de entregáveis vira uma coluna e o bloco do professor
   empilha.
 - **≤ 720px** · entram a dock fixa e o WhatsApp flutuante; os CTAs viram
-  largura cheia.
+  largura cheia; e o **comparativo deixa de ser tabela e vira pilha de
+  cartões** — cada linha com a situação no topo e as duas respostas
+  empilhadas, cada uma rotulada pelo `data-col` da célula. Três colunas em
+  360px só cabem com rolagem lateral, e rolagem lateral numa comparação é
+  onde a comparação morre: a pessoa nunca vê os dois lados ao mesmo tempo.
+  Empilhada, a comparação continua acontecendo — só que na vertical.
 - **altura ≤ 620px** · o parágrafo do portal some e a manchete encolhe.
 
 Dois ajustes que existem por um motivo específico:
@@ -279,6 +373,33 @@ enquanto está de pé, não deve existir página atrás para o visitante espiar.
 a intenção não vale um portão decepado: em tela baixa (celular deitado, janela
 cortada, fonte aumentada) a rolagem entra e salva o conteúdo. Nas alturas
 normais ninguém rola nada.
+
+---
+
+## O comparativo é o único bloco arredondado
+
+E é escolha, não descuido. O resto do sistema é chanfrado — canto cortado em
+45°, linguagem de operação — e o chanfro serve bem a peças que precisam de
+tensão: botão, medalhão, portão, o bloco do bônus.
+
+Uma tabela de comparação precisa do contrário. Ela é a peça que a pessoa lê
+devagar, linha por linha, pesando dois lados; canto macio e linha larga é o que
+a deixa ser **lida** em vez de admirada.
+
+Duas decisões dentro dela:
+
+- **A coluna "Na operação" ganha fundo próprio de cima a baixo**, e não um fio
+  de ouro de cada lado como na versão anterior: num contêiner arredondado com
+  `overflow: hidden`, dois fios verticais batem de frente com o raio nos quatro
+  cantos.
+- **Zebra em vez de grade de bordas.** Numa tabela de sete linhas e três
+  colunas, a zebra é o que segura o olho na linha certa sem encher a peça de
+  fios.
+
+O visto e o xis vivem em discos, e são a leitura de relance da tabela inteira:
+quem não lê uma linha sequer entende a comparação só pela coluna de discos.
+Eles usam `float`, e não flex, para que o texto de duas linhas encoste embaixo
+do disco em vez de ficar preso numa coluna estreita ao lado dele.
 
 ---
 

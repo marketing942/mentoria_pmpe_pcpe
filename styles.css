@@ -328,6 +328,23 @@ strong, b { font-weight: 700; color: var(--text); }
      Nas alturas normais o conteúdo cabe e ninguém rola nada. */
   overflow-x: hidden; overflow-y: auto;
   overscroll-behavior: contain;
+
+  /* ─── A MARCAÇÃO DE TEMPO DA COLISÃO ─────────────────────
+     Vale para os dois brasões que voam, para o clarão, a onda, o risco, o
+     tranco da tela E para a entrada dos dois portões. Mora aqui, na .portal,
+     porque é o ancestral comum de todos eles: são ramos diferentes da
+     árvore, e com uma cópia em cada um bastava ajustar um lado para a cena
+     inteira sair de sincronia.
+
+     O script.js lê o --impacto daqui (por herança) para soltar os
+     estilhaços no instante certo.
+
+     --vem + --voo TEM que fechar em --impacto. Se não fechar, ou o clarão
+     acende antes dos brasões chegarem, ou os brasões atravessam um do outro
+     e batem no vazio. */
+  --vem:     .16s;   /* quando os dois brasões começam a vir */
+  --voo:     .80s;   /* quanto levam para atravessar a tela */
+  --impacto: .96s;   /* --vem + --voo: o instante da batida */
   transition: opacity .62s var(--ease), transform .62s var(--ease), visibility .62s;
 }
 /* O fundo do atirador também aqui, mais apagado que na hero: dá chão à cena
@@ -366,23 +383,36 @@ strong, b { font-weight: 700; color: var(--text); }
 .portal__top { text-align: center; }
 .portal__meio { display: grid; place-items: center; }
 
-/* ─── marca e chamada ─── */
+/* ─── marca e chamada ─────────────────────────────────────
+   Só o leão, e grande. O "CPPEM / Concursos Públicos" ao lado dele saiu: o
+   emblema JÁ é a marca, e um wordmark do lado dele numa tela cujo assunto é
+   escolher entre duas corporações era um terceiro nome disputando a leitura
+   com os dois que importam. */
 .portal__marca {
-  display: inline-flex; align-items: center; gap: 14px;
-  animation: rise .8s var(--ease) both .05s;
+  display: block; width: clamp(76px, 12vh, 118px); margin-inline: auto;
+  animation: marca-entra .9s var(--freada) both .05s;
 }
-.portal__marca img { width: 46px; filter: drop-shadow(0 2px 12px rgba(175,146,86,.42)); }
-.portal__marca b {
-  font-family: var(--font-title); font-size: 20px; font-weight: 800;
-  letter-spacing: 4px; text-transform: uppercase; color: var(--text); line-height: 1;
+.portal__marca img {
+  width: 100%;
+  filter: drop-shadow(0 4px 22px rgba(175,146,86,.5));
 }
-.portal__marca i {
-  display: block; margin-top: 4px; font-family: var(--font-ui); font-style: normal;
-  font-size: 9.5px; font-weight: 700; letter-spacing: 2.8px; color: var(--gold);
+@keyframes marca-entra {
+  from { opacity: 0; transform: translateY(-22px) scale(.86); }
+  to   { opacity: 1; transform: none; }
+}
+/* ─── a entrada dos textos do portal ───────────────────────
+   Keyframe PRÓPRIO, e não o `rise` da página: o `rise` só declara o `to`, e
+   o preenchimento `backwards` de um keyframe sem `from` herda o estado atual
+   do elemento — opacity 1. Com atraso curto ninguém via; com o atraso
+   ancorado no impacto, o rodapé e o "OU" apareciam antes da colisão
+   acontecer. Um `from` explícito é o que os mantém escondidos na espera. */
+@keyframes entra-portal {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
 }
 .portal__chamada {
-  margin-top: clamp(14px, 3vh, 26px);
-  animation: rise .8s var(--ease) both .18s;
+  margin-top: clamp(12px, 2.4vh, 22px);
+  animation: entra-portal .8s var(--ease) both .18s;
 }
 .portal__chamada h1 {
   margin-top: 14px;
@@ -415,7 +445,7 @@ strong, b { font-weight: 700; color: var(--text); }
   width: 58px; min-height: 120px;
   font-family: var(--font-title); font-size: 12px; font-weight: 800;
   letter-spacing: 4px; text-transform: uppercase; color: var(--gold);
-  animation: rise .8s var(--ease) both .5s;
+  animation: entra-portal .8s var(--ease) both calc(var(--impacto) + .32s);
 }
 .portoes__ou::before, .portoes__ou::after {
   content: ''; position: absolute; left: 50%; width: 1px; transform: translateX(-50%);
@@ -430,6 +460,151 @@ strong, b { font-weight: 700; color: var(--text); }
    acende esta mesma página. Um link com href="#/pmpe" prometeria uma página
    nova e daria o menu de contexto "abrir em nova aba", que aqui abriria o
    portal de novo. */
+/* =========================================================
+   A COLISÃO — a cena de entrada do portal
+   ---------------------------------------------------------
+   Os dois brasões atravessam a tela, cada um do seu lado, e batem no meio.
+   Da batida saem clarão, onda, risco, estilhaços e o tranco na tela — e é do
+   ponto do impacto que os dois portões nascem, voltando cada um para o seu
+   lado. A leitura é literal: as duas corporações se encontram, e a escolha é
+   o que sobra do encontro.
+
+   A camada morre em ~1,7s. Nada nela é interativo e nada nela sobrevive à
+   cena: o que fica de pé são os portões.
+
+   Os brasões daqui são DECORATIVOS (alt=""): os mesmos dois desenhos são
+   anunciados logo abaixo, dentro dos portões, com nome de corporação e tudo.
+   Repetir aqui faria um leitor de tela ouvir quatro brasões numa tela que
+   tem dois.
+   ========================================================= */
+.choque {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  overflow: hidden;
+}
+.choque__brasao {
+  position: absolute; left: 50%; top: 50%;
+  width: clamp(96px, 15vw, 172px); aspect-ratio: 1; display: block;
+  filter: drop-shadow(0 0 26px rgba(0,0,0,.85));
+}
+.choque__brasao img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Duas animações por brasão, e não uma só com muitos passos:
+   o VOO tem easing de aceleração (entra devagar, chega rápido — é o que faz
+   ler como massa ganhando velocidade) e o RECUO tem easing de saída. Num
+   keyframe único o easing seria o mesmo para os dois trechos, e a batida
+   perderia exatamente o que a torna uma batida.
+
+   O recuo NÃO leva `backwards`: durante o atraso dele o navegador aplicaria
+   o estado inicial já no primeiro quadro e o voo nunca aconteceria. */
+.choque__brasao--a {
+  animation:
+    voa-esq   var(--voo) cubic-bezier(.5,0,.85,.30) var(--vem) forwards,
+    recua-esq .7s        var(--ease)                var(--impacto) forwards;
+}
+.choque__brasao--b {
+  animation:
+    voa-dir   var(--voo) cubic-bezier(.5,0,.85,.30) var(--vem) forwards,
+    recua-dir .7s        var(--ease)                var(--impacto) forwards;
+}
+@keyframes voa-esq {
+  0%   { opacity: 0; transform: translate(calc(-50% - 62vw), -50%) rotate(-16deg) scale(.72); }
+  18%  { opacity: 1; }
+  100% { opacity: 1; transform: translate(calc(-50% - 46px), -50%) rotate(0deg)   scale(1); }
+}
+@keyframes voa-dir {
+  0%   { opacity: 0; transform: translate(calc(-50% + 62vw), -50%) rotate(16deg)  scale(.72); }
+  18%  { opacity: 1; }
+  100% { opacity: 1; transform: translate(calc(-50% + 46px), -50%) rotate(0deg)   scale(1); }
+}
+/* O recuo é para FORA e para os lados dos portões: os brasões saem do
+   impacto na direção de onde os portões vão nascer, e apagam ao chegar. */
+@keyframes recua-esq {
+  0%   { opacity: 1; transform: translate(calc(-50% - 46px),  -50%) scale(1); }
+  22%  { opacity: 1; transform: translate(calc(-50% - 130px), -50%) scale(1.06); }
+  100% { opacity: 0; transform: translate(calc(-50% - 24vw),  -50%) scale(.62); }
+}
+@keyframes recua-dir {
+  0%   { opacity: 1; transform: translate(calc(-50% + 46px),  -50%) scale(1); }
+  22%  { opacity: 1; transform: translate(calc(-50% + 130px), -50%) scale(1.06); }
+  100% { opacity: 0; transform: translate(calc(-50% + 24vw),  -50%) scale(.62); }
+}
+
+/* ─── o clarão ─── */
+.choque__clarao {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 130vmax; height: 130vmax; opacity: 0; display: block;
+  background: radial-gradient(circle,
+    #FFF6DE 0%, rgba(255,231,176,.85) 6%, rgba(196,112,63,.45) 15%, transparent 42%);
+  animation: clarao .62s var(--ease) var(--impacto) forwards;
+}
+@keyframes clarao {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.12); }
+  12%  { opacity: 1; transform: translate(-50%, -50%) scale(.42); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+/* ─── as ondas de choque ───────────────────────────────────
+   Anéis hexagonais, e não círculos: o hexágono é a forma dos medalhões e dos
+   portões, e é o que amarra a cena ao resto da página. São dois com atrasos
+   diferentes — um anel só lê como bolha, dois leem como onda. */
+.choque__onda {
+  position: absolute; left: 50%; top: 50%; display: block;
+  width: 240px; height: 240px; opacity: 0;
+  box-shadow: inset 0 0 0 3px var(--gold-pale);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: onda .9s cubic-bezier(.12,.7,.3,1) var(--impacto) forwards;
+}
+.choque__onda--2 { animation-delay: calc(var(--impacto) + .11s); animation-duration: 1.05s; }
+@keyframes onda {
+  0%   { opacity: .95; transform: translate(-50%, -50%) scale(.14); }
+  100% { opacity: 0;   transform: translate(-50%, -50%) scale(7); }
+}
+
+/* ─── o risco de luz ───────────────────────────────────────
+   Uma lâmina horizontal que rasga a tela no instante da batida. É o que dá
+   escala ao impacto: sem ela a cena inteira acontece dentro de um círculo de
+   300px no meio de uma tela de 1440. */
+.choque__risco {
+  position: absolute; left: 50%; top: 50%; display: block;
+  width: 100%; height: 3px; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--gold-pale) 30%, #FFF6DE 50%, var(--gold-pale) 70%, transparent);
+  box-shadow: 0 0 26px 5px rgba(240,220,176,.6);
+  animation: risco .56s var(--ease) var(--impacto) forwards;
+}
+@keyframes risco {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scaleX(.02) scaleY(2.4); }
+  14%  { opacity: 1; transform: translate(-50%, -50%) scaleX(.55) scaleY(1.6); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(1.4) scaleY(.25); }
+}
+
+/* ─── os estilhaços ───────────────────────────────────────
+   Reusam o .caco da ignição. O script os cria no instante do impacto e os
+   solta do centro da tela. */
+.choque__cacos { position: absolute; inset: 0; z-index: 6; pointer-events: none; overflow: hidden; }
+
+/* ─── o tranco ─────────────────────────────────────────────
+   A .portal inteira sacode, fundo e tudo: sacudir só o conteúdo faria a cena
+   parecer um elemento tremendo dentro de uma tela parada, e o que se quer é
+   a tela levando o baque.
+
+   Vale lembrar que a .portal também tem `transition: transform` para a saída
+   (.is-gone). Não há conflito porque uma coisa acontece no primeiro segundo
+   e a outra só depois do clique — mas se algum dia o tranco passar a valer
+   junto da saída, é aqui que os dois brigam. */
+/* `backwards` e nao `both`: com `both` o transform:none do último quadro
+   ficaria fixado para sempre, e o .is-gone { transform: scale(1.14) } da
+   saída do portal nunca sairia do lugar. */
+.portal { animation: tranco .42s var(--ease) var(--impacto) backwards; }
+@keyframes tranco {
+  0%   { transform: none; }
+  12%  { transform: translate3d(-9px, 5px, 0); }
+  26%  { transform: translate3d(8px, -6px, 0); }
+  42%  { transform: translate3d(-6px, -3px, 0); }
+  58%  { transform: translate3d(5px, 4px, 0); }
+  74%  { transform: translate3d(-3px, -2px, 0); }
+  100% { transform: none; }
+}
+
 .portao {
   position: relative; display: block; width: 100%; cursor: pointer;
   padding: clamp(20px, 3.4vh, 34px) clamp(16px, 2.4vw, 30px);
@@ -438,12 +613,22 @@ strong, b { font-weight: 700; color: var(--text); }
   box-shadow: inset 0 0 0 1px var(--border);
   clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
   transition: transform .42s var(--freada), box-shadow .32s var(--ease), background .32s var(--ease);
-  animation: portao-entra .9s var(--freada) both;
+  /* O atraso sai do --impacto: os portões não "aparecem depois da animação",
+     eles nascem DA batida. Um número solto aqui se descolaria da cena no
+     primeiro ajuste de tempo que alguém fizesse lá em cima. */
+  animation: portao-entra .85s var(--freada) calc(var(--impacto) + .1s) both;
 }
-.portao--a { animation-delay: .32s; }
-.portao--b { animation-delay: .44s; }
-@keyframes portao-entra {
-  from { opacity: 0; transform: translateY(38px) scale(.94); }
+/* Cada um volta para o seu lado — o mesmo eixo por onde o brasão dele veio.
+   É translateX, então funciona igual com os portões lado a lado no desktop e
+   empilhados no celular: o eixo da animação não depende do eixo do layout. */
+.portao--a { animation-name: portao-entra-esq; }
+.portao--b { animation-name: portao-entra-dir; animation-delay: calc(var(--impacto) + .17s); }
+@keyframes portao-entra-esq {
+  from { opacity: 0; transform: translate3d(-72px, 14px, 0) scale(.9); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes portao-entra-dir {
+  from { opacity: 0; transform: translate3d(72px, 14px, 0) scale(.9); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -589,7 +774,7 @@ strong, b { font-weight: 700; color: var(--text); }
 .portao__entrar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 
 /* ─── rodapé do portal ─── */
-.portal__bottom { text-align: center; animation: rise .8s var(--ease) both .62s; }
+.portal__bottom { text-align: center; animation: entra-portal .8s var(--ease) both calc(var(--impacto) + .42s); }
 .portal__nota {
   font-size: 11.5px; font-weight: 700; letter-spacing: 2.6px;
   text-transform: uppercase; color: var(--text-mute);
@@ -1017,10 +1202,13 @@ html.is-portal .dock, html.is-portal .float { display: none; }
    de cima para baixo, item a item. Em card cada um viraria uma oferta
    independente disputando atenção com as outras oito.
    ========================================================= */
-.entrega { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+/* Nove itens em três colunas fecham em três fileiras exatas. Em duas
+   colunas sobrava um órfão sozinho na quinta fileira — e um órfão numa
+   lista de benefícios lê como item esquecido, não como item extra. */
+.entrega { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .item {
-  position: relative; display: flex; align-items: flex-start; gap: 15px;
-  padding: 20px 22px; isolation: isolate;
+  position: relative; display: flex; align-items: flex-start; gap: 13px;
+  padding: 17px 18px; isolation: isolate;
   background: linear-gradient(180deg, rgba(24,24,30,.9), rgba(17,17,21,.9));
   box-shadow: inset 0 0 0 1px var(--border);
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
@@ -1043,20 +1231,20 @@ html.is-portal .dock, html.is-portal .float { display: none; }
    entra colorido, quebra a paleta em nove pontos da mesma tela e muda de
    desenho entre Android, iOS e Windows. */
 .item__check {
-  flex-shrink: 0; width: 26px; height: 26px; margin-top: 2px;
+  flex-shrink: 0; width: 23px; height: 23px; margin-top: 1px;
   display: grid; place-items: center; border-radius: 50%;
   background: rgba(175,146,86,.12); box-shadow: inset 0 0 0 1px var(--border-active);
   color: var(--gold-light);
 }
-.item__check svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.item__check svg { width: 11.5px; height: 11.5px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .item__txt b {
-  display: block; font-family: var(--font-title); font-size: 16.5px; font-weight: 700;
+  display: block; font-family: var(--font-title); font-size: 15.5px; font-weight: 700;
   letter-spacing: .4px; color: var(--text); line-height: 1.25;
 }
 /* O ">" não é enfeite: o <span> da sigla vive DENTRO do <b> do título e do
    próprio parágrafo. Com o seletor de descendente ele também virava bloco,
    e "Videoaulas e PDFs da PMPE" quebrava com a sigla sozinha numa linha. */
-.item__txt > span { display: block; margin-top: 5px; color: var(--text-dim); font-size: 14.5px; line-height: 1.55; }
+.item__txt > span { display: block; margin-top: 5px; color: var(--text-dim); font-size: 14px; line-height: 1.52; }
 
 /* =========================================================
    OS EXTRAS — o bloco de bônus
@@ -1407,35 +1595,6 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
 }
 
 /* =========================================================
-   ETAPAS — como funciona
-   ========================================================= */
-.etapas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: passo; }
-.etapa { position: relative; padding-top: 30px; }
-/* o fio que liga uma etapa à seguinte. O :last-child não recebe, senão a
-   linha continuaria para fora da última caixa apontando para nada. */
-.etapa::before {
-  content: ''; position: absolute; top: 14px; left: 46px; right: -18px; height: 1px;
-  background: linear-gradient(90deg, var(--border-active), var(--border-soft));
-}
-.etapa:last-child::before { display: none; }
-/* Chanfro, e não hexágono: numa caixa de 28px o hexágono apontado deixa a
-   borda interna visível só nos dois lados retos, e o número passa a parecer
-   preso entre duas barrinhas. O canto chanfrado é o mesmo vocabulário do
-   resto da página e desenha inteiro nesse tamanho. */
-.etapa__num {
-  position: absolute; top: 0; left: 0;
-  width: 30px; height: 30px; display: grid; place-items: center;
-  background: rgba(175,146,86,.09); box-shadow: inset 0 0 0 1px var(--border-active);
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-  font-family: var(--font-title); font-size: 13px; font-weight: 800; color: var(--gold);
-}
-.etapa h3 {
-  font-family: var(--font-title); font-size: 17px; font-weight: 800;
-  letter-spacing: .5px; color: var(--text); margin-bottom: 9px;
-}
-.etapa p { color: var(--text-dim); font-size: 15px; line-height: 1.6; }
-
-/* =========================================================
    O PROFESSOR
    ========================================================= */
 .duo { display: grid; grid-template-columns: .85fr 1.15fr; gap: 54px; align-items: center; }
@@ -1475,32 +1634,65 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
 /* =========================================================
    COMPARATIVO
    ---------------------------------------------------------
-   <table> de verdade, e não uma grade de divs: são dois eixos de dado
-   (situação × cenário) com cabeçalho, e é o que faz um leitor de tela
-   anunciar a linha inteira em vez de despejar fragmentos soltos.
+   O único bloco arredondado da página, e é escolha, não descuido: o resto do
+   sistema é chanfrado — canto cortado em 45°, linguagem de operação — e o
+   chanfro serve bem a peças que precisam de tensão. Uma tabela de comparação
+   precisa do contrário. Ela é a peça que a pessoa lê devagar, linha por
+   linha, pesando dois lados; canto macio e linha larga é o que a deixa ser
+   lida em vez de admirada.
+
+   No celular ela deixa de ser tabela e vira pilha de cartões. Ver o bloco
+   responsivo lá embaixo — é lá que mora a parte que mais importa, porque é
+   por lá que quase todo mundo lê esta página.
    ========================================================= */
-.tabela-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.tabela {
-  width: 100%; min-width: 620px; border-collapse: collapse;
-  background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
-  box-shadow: inset 0 0 0 1px var(--border);
+.vs-wrap {
+  max-width: 1000px; margin-inline: auto;
+  border-radius: 20px; overflow: hidden;
+  background: linear-gradient(180deg, #16161C, #101014);
+  box-shadow: inset 0 0 0 1px var(--border), 0 30px 60px -40px rgba(0,0,0,.9);
 }
-.tabela th, .tabela td { padding: 17px 20px; text-align: left; border-bottom: 1px solid var(--border-soft); }
-.tabela thead th {
-  font-family: var(--font-title); font-size: 12px; font-weight: 800;
-  letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold);
-  background: rgba(175,146,86,.05);
+.vs { width: 100%; border-collapse: collapse; }
+
+.vs__cab {
+  padding: 20px 24px; text-align: left; vertical-align: bottom;
+  font-family: var(--font-title); font-size: 12.5px; font-weight: 800;
+  letter-spacing: 2.6px; text-transform: uppercase; color: var(--text-mute);
 }
-.tabela tbody th { font-weight: 700; color: var(--text); font-size: 15.5px; }
-.tabela td { color: var(--text-dim); font-size: 15px; }
-.tabela tr:last-child th, .tabela tr:last-child td { border-bottom: 0; }
-/* a coluna da operação é a que interessa: ela recebe o fio de ouro dos dois
-   lados para se destacar sem precisar de fundo colorido */
-.tabela .col-op { color: var(--text); background: rgba(175,146,86,.05); box-shadow: inset 1px 0 0 var(--border-active), inset -1px 0 0 var(--border-active); }
-.tabela .sim, .tabela .nao { display: inline-flex; align-items: center; gap: 9px; }
-.tabela .sim { color: var(--gold-light); font-weight: 700; }
-.tabela .nao { color: var(--text-mute); }
-.tabela .sim svg, .tabela .nao svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.vs__cab--sim { color: var(--gold); }
+.vs thead th:first-child { width: 24%; }
+
+.vs tbody th {
+  padding: 18px 24px; text-align: left; vertical-align: middle;
+  font-family: var(--font-title); font-size: 15px; font-weight: 700;
+  letter-spacing: .3px; color: var(--text); line-height: 1.3;
+}
+.vs td { padding: 18px 24px; vertical-align: middle; font-size: 15px; line-height: 1.45; }
+
+/* Zebra em vez de grade de bordas: numa tabela de sete linhas e três colunas
+   é o que segura o olho na linha certa sem encher a peça de fios. */
+.vs tbody tr:nth-child(even) { background: rgba(255,255,255,.018); }
+.vs tbody tr + tr th, .vs tbody tr + tr td { border-top: 1px solid var(--border-soft); }
+
+/* A coluna da operação é a que interessa, e ela ganha fundo próprio de cima a
+   baixo — não um fio de cada lado, que num contêiner arredondado bateria de
+   frente com o raio nos quatro cantos. */
+.vs__sim { color: var(--text); background: rgba(175,146,86,.06); width: 33%; }
+.vs__nao { color: var(--text-mute); width: 33%; }
+
+/* O visto e o xis em disco. São a leitura de relance da tabela inteira: quem
+   não lê uma linha sequer entende a comparação só pela coluna de discos.
+
+   `float` e não flex: o texto de duas linhas encosta embaixo do disco em vez
+   de ficar preso numa coluna estreita ao lado dele. */
+.vs__marca {
+  float: left; width: 24px; height: 24px; margin: 1px 11px 0 0;
+  display: grid; place-items: center; border-radius: 50%;
+}
+.vs__marca svg { width: 12px; height: 12px; fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.vs__sim .vs__marca { background: rgba(175,146,86,.16); box-shadow: inset 0 0 0 1px var(--border-active); }
+.vs__sim .vs__marca svg { stroke: var(--gold-light); }
+.vs__nao .vs__marca { background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); }
+.vs__nao .vs__marca svg { stroke: var(--text-mute); }
 
 /* =========================================================
    FAQ
@@ -1723,9 +1915,6 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
 @media (max-width: 1080px) {
   .nav { display: none; }
   .opsel { margin-left: auto; }
-  .etapas { grid-template-columns: repeat(2, 1fr); row-gap: 30px; }
-  /* com duas colunas o fio da segunda etapa apontaria para a borda da tela */
-  .etapa:nth-child(2n)::before { display: none; }
   .extras__grid { grid-template-columns: repeat(2, 1fr); }
   .footer__inner { grid-template-columns: 1fr 1fr; }
 }
@@ -1780,8 +1969,19 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
   .portal__nota { font-size: 10.5px; letter-spacing: 1.8px; }
 }
 
+@media (max-width: 1080px) {
+  /* Em duas colunas o nono item ficaria sozinho na quinta fileira. Fazendo o
+     último ocupar a largura inteira, a sobra vira fecho da lista em vez de
+     buraco no canto. */
+  .entrega { grid-template-columns: repeat(2, 1fr); }
+  .entrega .item:last-child { grid-column: 1 / -1; }
+  .vs tbody th, .vs td, .vs__cab { padding-inline: 16px; }
+  .vs thead th:first-child { width: 22%; }
+}
+
 @media (max-width: 920px) {
   .entrega { grid-template-columns: 1fr; }
+  .entrega .item:last-child { grid-column: auto; }
 
   /* O painel dos dez desce para debaixo do texto e passa a ocupar a largura
      toda. Ele é o CTA deste bloco: espremido numa coluna estreita ao lado de
@@ -1819,8 +2019,6 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
 
   .ficha { grid-template-columns: repeat(2, 1fr); margin-top: 34px; }
 
-  .etapas { grid-template-columns: 1fr; }
-  .etapa::before { display: none; }
 
   .bonus { padding: 68px 0; }
   .bonus__grid { padding-inline: 18px; }
@@ -1845,6 +2043,42 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
 
   .final { padding: 84px 0; }
   .final .btn { width: 100%; }
+
+  /* ─── A TABELA VIRA PILHA DE CARTÕES ─────────────────────
+     Três colunas em 360px só cabem com rolagem lateral, e rolagem lateral
+     numa comparação é onde a comparação morre: a pessoa nunca vê os dois
+     lados ao mesmo tempo. Empilhada, cada linha vira um cartão com a
+     situação no topo e as duas respostas uma sobre a outra — a comparação
+     continua acontecendo, só que na vertical.
+
+     Os rótulos saem do `data-col` de cada célula, e não de texto repetido no
+     HTML: sem o cabeçalho da tabela na tela, as duas respostas ficariam sem
+     dizer de quem são. */
+  .vs-wrap { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+  .vs, .vs tbody, .vs tr, .vs tbody th, .vs td { display: block; width: auto; }
+  .vs thead { display: none; }
+  .vs tbody tr {
+    margin-bottom: 12px; border-radius: 16px; overflow: hidden;
+    background: linear-gradient(180deg, #16161C, #101014);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .vs tbody tr:nth-child(even) { background: linear-gradient(180deg, #16161C, #101014); }
+  .vs tbody tr + tr th, .vs tbody tr + tr td { border-top: 0; }
+
+  .vs tbody th {
+    padding: 13px 18px; background: rgba(175,146,86,.07);
+    font-size: 12px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold);
+  }
+  .vs td { padding: 13px 18px; overflow: hidden; }
+  .vs td + td { border-top: 1px solid var(--border-soft); }
+  .vs__sim { background: rgba(175,146,86,.05); }
+  .vs td::before {
+    content: attr(data-col); display: block; margin: 0 0 5px 35px;
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-mute);
+  }
+  .vs__sim::before { color: var(--gold); }
+  .vs__marca { margin-top: 0; }
 }
 
 @media (max-width: 420px) {
@@ -1870,6 +2104,7 @@ a.flag-bonus:hover { color: var(--gold-light); box-shadow: inset 0 0 0 1px var(-
     transition-duration: .01ms !important;
   }
   .reveal, .anim, .portao { opacity: 1 !important; transform: none !important; }
-  .brasas, .sparks, .portal__brasas, .portal__cacos, .portal__scan { display: none; }
+  .brasas, .sparks, .portal__brasas, .portal__cacos, .portal__scan,
+  .choque, .choque__cacos { display: none; }
 }
 

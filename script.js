@@ -110,6 +110,7 @@
       "vagas":         op.vagas,
       "tag":           op.tag,
       "dock-sub":      op.dockSub,
+      "hero-sub":      "A preparação completa para a " + op.corp + " — do primeiro dia à posse.",
       "preco":         op.preco,
       "preco-de":      op.precoDe,
       "preco-com":     op.precoCom,
@@ -240,36 +241,62 @@
 
     botao.classList.add("is-chosen");
     portal.classList.add("is-igniting");
-    estilhacar(px, py);
+    estilhacar(document.getElementById("portalCacos"), px, py, 26, 300);
 
     setTimeout(fecharPortal, IGNICAO);
   }
 
   /* Os estilhaços são os únicos que dependem de JS: o script cria os <i> com
      ângulo, distância e tamanho sorteados e a animação é CSS. Sem JS o portal
-     ainda acende — só não solta faísca. */
-  function estilhacar(px, py) {
-    var alvo = document.getElementById("portalCacos");
+     ainda acende — só não solta faísca.
+
+     Servem às DUAS cenas: a colisão da entrada e a ignição do clique. Muda o
+     contêiner, a origem e a quantidade; o resto é o mesmo desenho. */
+  var TONS_CACO = ["#FFE7B0", "#C9AE7A", "#C4703F"];
+
+  function estilhacar(alvo, px, py, quantos, forca) {
     if (!alvo || reduced) return;
     alvo.textContent = "";
 
-    var TONS = ["#FFE7B0", "#C9AE7A", "#C4703F"];
-    for (var i = 0; i < 26; i++) {
+    for (var i = 0; i < quantos; i++) {
       var caco = document.createElement("i");
       var ang  = Math.random() * Math.PI * 2;
-      var dist = 120 + Math.random() * 320;
+      var dist = forca * (.42 + Math.random());
       caco.className = "caco";
       caco.style.setProperty("--ox", px + "px");
       caco.style.setProperty("--oy", py + "px");
       caco.style.setProperty("--dx", Math.cos(ang) * dist + "px");
       caco.style.setProperty("--dy", Math.sin(ang) * dist + "px");
       caco.style.setProperty("--s", (2 + Math.random() * 4).toFixed(1) + "px");
-      caco.style.setProperty("--cor", TONS[Math.floor(Math.random() * TONS.length)]);
-      caco.style.setProperty("--dur", (.5 + Math.random() * .5).toFixed(2) + "s");
+      caco.style.setProperty("--cor", TONS_CACO[Math.floor(Math.random() * TONS_CACO.length)]);
+      caco.style.setProperty("--dur", (.5 + Math.random() * .6).toFixed(2) + "s");
       alvo.appendChild(caco);
     }
-    setTimeout(function () { alvo.textContent = ""; }, 1200);
+    setTimeout(function () { alvo.textContent = ""; }, 1400);
   }
+
+  /* ─── os estilhaços da COLISÃO de entrada ─────────────────
+     O instante NÃO é calculado: ele é escutado. O `animationend` do voo do
+     brasão da esquerda dispara exatamente quando ele chega ao centro, que é
+     por definição o instante da batida.
+
+     A conta ingênua — ler o --impacto e comparar com performance.now() —
+     erra, e erra feio: o relógio das animações de CSS começa quando o
+     elemento é renderizado, e o performance.now() começa na navegação. Numa
+     página que leva 400ms para pintar, os dois ficam 400ms fora de fase e as
+     faíscas saem antes dos brasões se encostarem. Escutar o próprio evento
+     não tem como sair de sincronia com a cena, porque É a cena.
+     ========================================================= */
+  (function colisao() {
+    var alvo   = document.getElementById("choqueCacos");
+    var brasao = $(".choque__brasao--a");
+    if (!alvo || !brasao || reduced || !portalAberto) return;
+
+    brasao.addEventListener("animationend", function (e) {
+      if (e.animationName !== "voa-esq") return;   /* ignora o recuo */
+      estilhacar(alvo, window.innerWidth / 2, window.innerHeight / 2, 40, 420);
+    });
+  })();
 
   $$(".portao").forEach(function (botao) {
     botao.addEventListener("click", function (e) { escolher(botao, e); });
