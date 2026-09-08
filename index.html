@@ -607,7 +607,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
            letra miúda — o primeiro número que a pessoa lê é o maior da
            página, e ela decide antes de descobrir que dá para dividir. -->
       <div class="preco__destaque">
-        <span class="preco__de">de <s data-slot="preco-de">R$ 1.654,00</s> por</span>
+        <span class="preco__de">de <s data-slot="preco-de">R$ 1.997,00</s> por</span>
         <span class="preco__parcela">
           <i data-slot="parcelas">12x</i>
           <b data-slot="preco-parcela">R$ 61</b>
@@ -617,7 +617,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </span>
       </div>
 
-      <span class="preco__economia">Você economiza <b data-slot="economia">R$ 1.017,00</b></span>
+      <!-- A economia é o segundo número da página, e por pouco: ela é a
+           tradução do "de X por Y" em uma frase só. Fica ENTRE o preço e a
+           conta detalhada de propósito — é a conclusão do bloco de cima, não
+           uma nota de rodapé dele. -->
+      <div class="economia shine shine--slow">
+        <span class="economia__cab">Você economiza</span>
+        <b class="economia__val" data-slot="economia">R$ 1.360,00</b>
+      </div>
 
       <!-- A conta fechada por padrão. Ela precisa existir — é a mesma tela que
            a pessoa vai ver no checkout, e bater linha por linha é o que
@@ -629,8 +636,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <table class="conta">
           <tbody>
             <tr>
-              <th scope="row">Produto <span class="off" data-slot="preco-off">−56%</span></th>
-              <td><span class="risco" data-slot="preco-de">R$ 1.654,00</span></td>
+              <th scope="row">Produto <span class="off" data-slot="preco-off">−63%</span></th>
+              <td><span class="risco" data-slot="preco-de">R$ 1.997,00</span></td>
             </tr>
             <tr>
               <th scope="row">Com o desconto <small data-slot="parcelamento">(12x R$ 61,03 sem juros)</small></th>
@@ -781,7 +788,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <tr>
             <th scope="row">Evolução</th>
             <td class="vs__sim" data-col="Na operação">
-              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Gráficos por matéria</span>
+              <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span><span>Gráficos por matéria e por Assunto</span>
             </td>
             <td class="vs__nao" data-col="Por conta própria">
               <span class="vs__marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span><span>Sensação de que está indo bem</span>

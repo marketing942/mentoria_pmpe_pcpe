@@ -94,16 +94,28 @@ primeira coisa lida.
 
 | Linha | Valor |
 |---|---|
-| Produto `−56%` | ~~R$ 1.654,00~~ |
+| Produto `−63%` | ~~R$ 1.997,00~~ |
 | Com o desconto | R$ 732,36 · **12x R$ 61,03 sem juros** |
 | Desconto à vista | − R$ 95,36 |
 | **Total à vista** | **R$ 637,00** |
 
+Logo abaixo da parcela vem a **economia**, em caixa própria: `R$ 1.360,00`. Ela
+é o segundo número da página em corpo, atrás só da própria parcela — era uma
+linha de 12px, do tamanho de uma nota de rodapé, e o abatimento é justamente o
+argumento que a parcela sozinha não faz.
+
+> A caixa da economia **não** repete o ouro em degradê da parcela nem o fundo
+> cheio do botão. Duas superfícies douradas empilhadas viram uma disputa em que
+> o botão perde. Ali o número é ouro chapado sobre caixa escura, e o que chama o
+> olho é o tamanho e a varredura de luz.
+
 ### ⚠️ O que foi deduzido, e não informado
 
-O checkout entregou quatro valores e a parcela (`12x R$ 61`). O rótulo
-**"Desconto à vista"** na terceira linha é dedução, não informação recebida — e
-é a única aritmética que fecha:
+Dois números da tabela acima **não** vieram do checkout: foram calculados. Vale
+conferir os dois contra a tela de pagamento antes de publicar.
+
+**1 · O rótulo "Desconto à vista".** O checkout mostra só "Desconto"; a
+qualificação "à vista" é a única leitura em que a aritmética fecha:
 
 ```
 12 × 61,03 = 732,36   ← exatamente a linha "com o desconto"
@@ -112,17 +124,26 @@ O checkout entregou quatro valores e a parcela (`12x R$ 61`). O rótulo
 
 Ou seja: quem parcela paga sobre R$ 732,36; quem paga à vista leva os R$ 95,36
 a menos. É também como o [`../unificados`](../unificados) apresenta o mesmo
-preço ("12x R$ 61 sem juros · R$ 637 à vista"), o que corrobora.
+preço ("12x R$ 61 sem juros · R$ 637 à vista"), o que corrobora. **Se o desconto
+valer também no parcelado**, o rótulo volta a ser "Desconto adicional" e a
+parcela passa a ser `12x R$ 53,08`.
 
-**Se o desconto de R$ 95,36 valer também no parcelado**, o rótulo está errado e
-a linha vira "Desconto adicional" de novo — e a parcela passa a ser
-`12x R$ 53,08`. Vale conferir na tela do checkout antes de publicar.
+**2 · O `−63%` da linha do produto.** O valor cheio subiu de R$ 1.654,00 para
+R$ 1.997,00, e o percentual foi recalculado junto — ele não pode ficar no −56%
+antigo, que era sobre o valor anterior:
 
-Pela mesma razão a página **não anuncia percentual próprio**: 1.654 → 637 dá
-61,5% de abatimento, mas o checkout estampa `−56%` na linha do produto, e a
-página que diz "61% off" ao lado de um checkout que diz "−56%" contradiz a si
-mesma. A economia aparece em reais — **R$ 1.017,00** — que é o número que fecha
-nas duas contas.
+```
+(1.997,00 − 732,36) / 1.997,00 = 63,3%
+```
+
+Se a etiqueta do checkout mostrar outro número, é o do checkout que vale: a
+página inteira existe para não divergir daquela tela.
+
+A página **não anuncia percentual próprio sobre o total**: 1.997 → 637 dá 68%
+de abatimento, mas o checkout estampa o percentual sobre a linha do produto, e
+a página que diz "68% off" ao lado de um checkout que diz outro número
+contradiz a si mesma. O abatimento cheio aparece em reais —
+**R$ 1.360,00** — que é o número que fecha nas duas contas (`1.997 − 637`).
 
 No JSON-LD vai o **total à vista** (`637.00`), nunca o valor cheio nem o da
 parcela: o Google compara o `price` com o que aparece na tela de pagamento.
@@ -131,6 +152,13 @@ Os valores vivem no `CONFIG.ops` como todo o resto. Se um mudar no checkout,
 mudam **três** lugares: o `CONFIG`, o texto estático do bloco no
 [index.html](index.html) (que existe para a página funcionar sem JS) e o
 `offers.price` do JSON-LD.
+
+> ⚠️ **Editar só o HTML não muda nada na tela.** O `aplicar()` reescreve todo
+> `[data-slot]` no carregamento, então um valor trocado à mão no
+> [index.html](index.html) é sobrescrito pelo `CONFIG` no primeiro quadro — o
+> arquivo mostra um preço e o navegador mostra outro. O HTML estático é o
+> fallback para quem está sem JS; a fonte da verdade é o `CONFIG`. Já aconteceu
+> uma vez, com o valor cheio.
 
 ---
 
