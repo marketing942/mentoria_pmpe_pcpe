@@ -18,42 +18,19 @@ grão de impressão e brasas subindo pela viewport.
 
 ## ⚠️ Pendências antes de publicar
 
-### 1. O preço não está na página
-
-**Não existe preço nesta landing** — nem na dobra, nem no CTA, nem no JSON-LD.
-Ele não foi informado, e um valor inventado numa página de checkout é pior do
-que valor nenhum: o visitante compara com o que aparece na tela de pagamento e
-a divergência queima a venda (o Google faz a mesma comparação e desqualifica a
-marcação `Course`).
-
-Os CTAs mandam para o checkout, onde o valor aparece. O FAQ diz isso com todas
-as letras ("as formas de pagamento e o valor aparecem na própria tela de
-checkout").
-
-**Para colocar o preço**, três lugares andam juntos:
-
-| Onde | O quê |
-|---|---|
-| `script.js` · `CONFIG.ops.*` | um campo novo (ex. `preco: "12x R$ 61"`) + um slot `data-slot="preco"` |
-| `index.html` · ao lado de cada CTA | a linha curta de preço |
-| `index.html` · JSON-LD | `offers` com o valor **à vista**, não o da parcela |
-
-Se os dois produtos tiverem preços **diferentes**, o campo já nasce por
-operação — é só preencher os dois.
-
-### 2. Imagem de compartilhamento
+### 1. Imagem de compartilhamento
 
 Falta gerar `public/og-operacao.jpg` em **1200×630**. Sem ele, o preview no
 WhatsApp e no Instagram sai sem imagem — e é por aí que a maior parte deste
 tráfego chega. O molde de [`../livepmpe/og.html`](../livepmpe/og.html) serve de
 ponto de partida.
 
-### 3. Domínio
+### 2. Domínio
 
 `<link rel="canonical">` e `og:url` estão em `https://operacao.cppem.com.br/`.
 Confirme o endereço final — os dois precisam apontar para o **mesmo** lugar.
 
-### 4. Número de vagas
+### 3. Número de vagas
 
 `1.320` (PMPE) e `1.315` (PCPE) vieram de [`../unificados`](../unificados) e
 somam as 2.635 que a página do [`../livepmpe`](../livepmpe) anuncia. Se o
@@ -101,6 +78,84 @@ com o conteúdo da **PMPE**, então a página continua coerente se o JS não rod
 > **Não crie um seletor `.is-pmpe` / `.is-pcpe` por componente.** É assim que
 > uma variante começa a divergir da outra sem ninguém perceber. Se algo precisa
 > mudar de lado, ou vira token acima, ou vira slot no CONFIG.
+
+---
+
+## O preço
+
+**R$ 637,00**, igual nas duas operações. O bloco `#preco` é uma `<table>` que
+repete o checkout **linha por linha, na mesma ordem e com os mesmos valores**:
+
+| Linha | Valor |
+|---|---|
+| Produto `−56%` | ~~R$ 1.654,00~~ |
+| Com o desconto | R$ 732,36 |
+| Desconto adicional | − R$ 95,36 |
+| **Total** | **R$ 637,00** |
+
+Não é excesso de zelo. Quem clica no CTA cai numa tela que mostra exatamente
+isso, e qualquer arredondamento diferente aqui vira desconfiança no momento em
+que a pessoa vai digitar o cartão. É também por isso que a página **não**
+anuncia um percentual próprio: 1.654 → 637 dá 61,5% de abatimento total, mas o
+checkout estampa `−56%` na linha do produto, e a página que diz "61% off" ao
+lado de um checkout que diz "−56%" contradiz a si mesma. A economia aparece em
+reais — **R$ 1.017,00** — que é o número que fecha nas duas contas.
+
+Nada de parcelamento está escrito aqui: as condições não foram definidas, e a
+nota abaixo do CTA remete à tela do checkout, onde elas aparecem.
+
+Os valores vivem no `CONFIG.ops` como todo o resto. Se um mudar no checkout,
+mudam **três** lugares: o `CONFIG`, o texto estático da `<table>` no
+[index.html](index.html) (que existe para a página funcionar sem JS) e o
+`offers.price` do JSON-LD no `<head>` — onde vai o **total**, nunca o valor
+cheio nem o de uma parcela.
+
+---
+
+## O bônus dos 10 primeiros
+
+Bloco `#bonus`, entre os entregáveis e o preço. É a última coisa que a pessoa
+lê antes do número, e a única razão da página para agir hoje em vez de semana
+que vem: dez vagas de teste da nova plataforma, por ordem de entrada, valendo
+para as duas operações somadas.
+
+Aparece em cinco pontos, e os cinco são de propósito: etiqueta na hero (quem
+sai na primeira tela precisa ter visto), a seção inteira, uma etiqueta abaixo
+da conta, o CTA final e duas perguntas no FAQ.
+
+### As três camadas de movimento
+
+Cada uma faz um trabalho, e é por isso que são três e não uma:
+
+- **a varredura de radar** (`.bonus__radar`) dá "operação em curso" ao fundo;
+- **a luz correndo na moldura** diz "isto está aberto agora";
+- **os dez pips acendendo em fila** dizem "são dez, e acabam".
+
+A moldura animada usa o mesmo princípio do aro dos medalhões — recorte parado
+no pai, rampa cônica girando num filho maior — porque `border-image` não aceita
+`clip-path`, e o bloco tem canto chanfrado como todo o resto da página. O
+núcleo escuro entra por cima recuado 3px; o que sobra nas beiradas é a luz.
+
+O ciclo dos pips é longo (5s) com a onda ocupando pouco dele: dez luzes
+piscando sem folga viram alarme, e alarme numa página de venda lê como pop-up.
+
+### ⚠️ Os pips não são um contador de vagas restantes
+
+Eles mostram o **tamanho do lote** — dez — e não quantas sobraram. Não existe
+"faltam 3" nesta página, e não deve passar a existir sem um número que venha de
+algum lugar de verdade: este é o bloco onde o comprador mais confia no que lê, e
+escassez inventada aqui contamina tudo que a página diz sobre preço logo abaixo.
+
+Pelo mesmo motivo o texto diz "por ordem de entrada · encerra quando as dez
+saírem", e não um relógio regressivo: a regra é verdadeira e verificável, o
+relógio seria cenário.
+
+### Quando as dez acabarem
+
+O bloco sai em quatro cortes — a `<section id="bonus">`, as duas
+`.flag-bonus` (hero e preço), o link `Bônus` da navbar e o
+`.flag-bonus` do CTA final — mais as duas perguntas do FAQ. Nenhum outro
+componente da página depende dele.
 
 ---
 
@@ -322,7 +377,7 @@ Eventos empurrados para o `dataLayer`:
 | `escolha_operacao` | o visitante escolhe um lado no portal |
 | `troca_operacao` | troca de operação pelos atalhos do rodapé |
 | `portal_aberto` | o portal é reaberto pelo "Trocar" |
-| `clique_checkout` | qualquer CTA de checkout (5 na página) |
+| `clique_checkout` | qualquer CTA de checkout (7 na página) |
 
 Todos carregam `pagina` e, quando faz sentido, `produto` com o nome completo da
 operação.

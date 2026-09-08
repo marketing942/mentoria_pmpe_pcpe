@@ -50,9 +50,9 @@
 <!-- Dois produtos = dois Course. Um array de dois objetos é a forma correta:
      empacotar as duas operações num Course só faria o Google anunciar um
      produto que não existe.
-     ⚠️ Sem "offers": o preço ainda não está definido nesta página. Publicar
-     um Course com offers.price vazio ou inventado é pior do que não ter
-     marcação nenhuma — o Google compara com o que aparece no checkout. -->
+     Em "offers" vai o TOTAL do checkout (637.00), e não o valor cheio nem o
+     de uma parcela: o Google compara o price com o que aparece na tela de
+     pagamento, e qualquer outro número faz a marcação divergir da página. -->
 <script type="application/ld+json">
 [
   {
@@ -66,6 +66,14 @@
       "courseMode": "online",
       "courseWorkload": "P12M",
       "instructor": { "@type": "Person", "name": "Everton Mota" }
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "637.00",
+      "priceCurrency": "BRL",
+      "availability": "https://schema.org/InStock",
+      "category": "Paid",
+      "url": "https://checkout.cppem.com.br/pay/operacao-praca-pmpe"
     }
   },
   {
@@ -79,6 +87,14 @@
       "courseMode": "online",
       "courseWorkload": "P12M",
       "instructor": { "@type": "Person", "name": "Everton Mota" }
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "637.00",
+      "priceCurrency": "BRL",
+      "availability": "https://schema.org/InStock",
+      "category": "Paid",
+      "url": "https://checkout.cppem.com.br/pay/operacao-distintivo-pcpe"
     }
   }
 ]
@@ -227,9 +243,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <nav class="nav" aria-label="Seções da página">
       <a href="#recebe">O que você recebe</a>
-      <a href="#metodo">Como funciona</a>
+      <a href="#bonus">Bônus</a>
+      <a href="#preco">Investimento</a>
       <a href="#professor">O professor</a>
-      <a href="#comparativo">Comparativo</a>
       <a href="#faq">Dúvidas</a>
     </nav>
 
@@ -287,6 +303,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </a>
       <a class="btn btn--ghost btn--lg" href="#recebe"><span>Ver tudo que inclui</span></a>
     </div>
+
+    <!-- A etiqueta do bônus na dobra. Repete o bloco #bonus de propósito: quem
+         entra pela hero e sai na primeira tela precisa ter visto que existe um
+         lote de dez. -->
+    <a class="flag-bonus anim d5" href="#bonus">
+      <i aria-hidden="true"></i>
+      <span>Bônus: os <b>10 primeiros</b> entram antes na nova plataforma</span>
+    </a>
+
     <span class="hero__nota anim d5">Acesso imediato · Suporte de mentores e equipe pedagógica</span>
 
     <div class="ficha anim d5">
@@ -429,6 +454,151 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="center" style="margin-top:44px">
       <a class="btn btn--gold btn--lg shine" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe">
         <span>Quero tudo isso</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     BÔNUS ESPECIAL — os 10 primeiros
+     ---------------------------------------------------------
+     Fica ENTRE os entregáveis e o preço de propósito: é a última coisa que a
+     pessoa lê antes do número, e é a única razão da página para agir hoje em
+     vez de semana que vem.
+
+     Os dez pips mostram o TAMANHO DO LOTE, não quantas vagas sobraram. Não
+     há contador de restantes aqui, e não deve haver: um "faltam 3" que não
+     vem de lugar nenhum é número inventado na cara do comprador.
+     ========================================================= -->
+<section class="bonus" id="bonus" aria-labelledby="bonus-title">
+  <div class="bonus__radar"  aria-hidden="true"></div>
+  <div class="bonus__brasas" id="bonusBrasas" aria-hidden="true"></div>
+
+  <div class="container">
+    <div class="bonus__moldura">
+      <div class="bonus__inner">
+
+        <span class="bonus__fita" aria-hidden="true">
+          <span>
+            Bônus especial <i>·</i> Acesso antecipado <i>·</i> Só os 10 primeiros <i>·</i> Nova plataforma <i>·</i>
+            Bônus especial <i>·</i> Acesso antecipado <i>·</i> Só os 10 primeiros <i>·</i> Nova plataforma <i>·</i>
+            Bônus especial <i>·</i> Acesso antecipado <i>·</i> Só os 10 primeiros <i>·</i> Nova plataforma <i>·</i>
+            Bônus especial <i>·</i> Acesso antecipado <i>·</i> Só os 10 primeiros <i>·</i> Nova plataforma <i>·</i>
+          </span>
+        </span>
+
+        <div class="bonus__grid">
+          <div>
+            <span class="eyebrow">Bônus especial</span>
+            <h2 id="bonus-title">Os 10 primeiros entram <span class="gold">antes de todo mundo</span> na nova plataforma</h2>
+
+            <p class="bonus__lead">
+              Estamos abrindo <strong>10 vagas de teste</strong> da nova plataforma do CPPEM.
+              Quem garantir uma delas usa tudo <strong>antes do lançamento</strong> — e ajuda a
+              definir como ela vai chegar para o resto da turma.
+            </p>
+
+            <ul class="bonus__lista">
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+                <span><b>Acesso antecipado</b> à nova plataforma, antes da abertura geral</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+                <span><b>Canal direto</b> com a equipe para mandar o que funciona e o que atrapalha</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+                <span><b>Sem custo nenhum a mais</b> — entra junto com a sua operação</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+                <span>Vale para as <b>duas operações</b>: PMPE e PCPE disputam o mesmo lote de dez</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="dez">
+            <span class="dez__label">Lote de teste</span>
+            <span class="dez__num">10</span>
+            <span class="dez__sub">vagas, e só</span>
+
+            <div class="pips" aria-hidden="true">
+              <i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i>
+              <i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i><i style="--i:8"></i><i style="--i:9"></i>
+            </div>
+
+            <a class="btn btn--gold btn--block shine" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe">
+              <span>Quero uma das 10</span>
+            </a>
+            <span class="dez__nota">Por ordem de entrada · encerra quando as dez saírem</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= O INVESTIMENTO ================= -->
+<section class="section" id="preco" aria-labelledby="preco-title">
+  <div class="container">
+    <div class="section__head">
+      <span class="eyebrow">O investimento</span>
+      <h2 class="section__title" id="preco-title">O que custa <span class="gold">entrar</span></h2>
+      <p class="section__lead">
+        A conta abaixo é a mesma que vai aparecer no checkout, linha por linha.
+        Sem letra miúda e sem valor que muda de tela para tela.
+      </p>
+    </div>
+
+    <div class="preco__caixa">
+      <!-- ⚠️ Cada valor sai do CONFIG.ops do script.js, como todo o resto que
+           muda entre as duas operações. Hoje as duas custam o mesmo, mas
+           quando uma delas mudar de preço não há nada para procurar aqui.
+
+           O texto estático abaixo é o da PMPE, para a página continuar
+           coerente sem JS. Se um valor mudar no checkout, mudam TRÊS
+           lugares: o CONFIG, este HTML e o "offers.price" do JSON-LD. -->
+      <table class="conta">
+        <caption data-slot="nome-completo">Operação Praça PMPE</caption>
+        <tbody>
+          <tr>
+            <th scope="row">Produto <span class="off" data-slot="preco-off">−56%</span></th>
+            <td><span class="risco" data-slot="preco-de">R$ 1.654,00</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Com o desconto</th>
+            <td data-slot="preco-com">R$ 732,36</td>
+          </tr>
+          <tr>
+            <th scope="row">Desconto adicional</th>
+            <td class="abate" data-slot="preco-abate">− R$ 95,36</td>
+          </tr>
+          <tr class="total">
+            <th scope="row">Total</th>
+            <td data-slot="preco">R$ 637,00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <span class="preco__economia">Você economiza <b data-slot="economia">R$ 1.017,00</b></span>
+
+      <div class="preco__cta">
+        <a class="btn btn--gold btn--lg btn--block shine" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe">
+          <span>Garantir minha vaga</span>
+        </a>
+      </div>
+      <span class="preco__nota">
+        Checkout oficial CPPEM · acesso imediato após a confirmação.<br>
+        As formas de pagamento e o parcelamento aparecem na tela do checkout.
+      </span>
+    </div>
+
+    <div class="center" style="margin-top:30px">
+      <a class="flag-bonus" href="#bonus">
+        <i aria-hidden="true"></i>
+        <span>Entre os <b>10 primeiros</b>? Leva o acesso antecipado à nova plataforma</span>
       </a>
     </div>
   </div>
@@ -617,6 +787,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </p>
       </details>
       <details class="faq__item">
+        <summary>Como eu sei se fiquei entre os 10 do acesso antecipado?</summary>
+        <p>
+          É por <strong>ordem de entrada</strong>: as dez primeiras compras confirmadas — somando
+          as duas operações — levam o acesso antecipado à nova plataforma. Quem entrar
+          no lote é avisado pela equipe no grupo exclusivo, junto com as instruções de
+          acesso. Fechadas as dez, o bônus sai do ar até a abertura geral.
+        </p>
+      </details>
+      <details class="faq__item">
+        <summary>O acesso antecipado custa alguma coisa a mais?</summary>
+        <p>
+          Não. Ele entra <strong>junto com a sua operação</strong>, sem valor à parte e sem
+          troca de plano. Você paga os mesmos <strong data-slot="preco">R$ 637,00</strong> de quem
+          entrar depois — a diferença é só chegar antes.
+        </p>
+      </details>
+      <details class="faq__item">
         <summary>Como funciona o pagamento e o acesso?</summary>
         <p>
           A compra é feita no <strong>checkout oficial do CPPEM</strong>, e o acesso à plataforma
@@ -645,9 +832,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </p>
 
     <a class="btn btn--gold btn--lg shine" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe">
-      <span>Garantir minha vaga</span>
+      <span data-slot="cta-preco">Garantir minha vaga por R$ 637,00</span>
     </a>
-    <span class="final__note">Checkout oficial CPPEM · Acesso imediato</span>
+    <span class="final__note">De <span data-slot="preco-de">R$ 1.654,00</span> por <span data-slot="preco">R$ 637,00</span> · checkout oficial CPPEM · acesso imediato</span>
+
+    <div>
+      <a class="flag-bonus" href="#bonus">
+        <i aria-hidden="true"></i>
+        <span>As <b>10 primeiras</b> entradas levam o acesso antecipado à nova plataforma</span>
+      </a>
+    </div>
 
     <div>
       <button type="button" class="final__troca" data-trocar>
@@ -723,7 +917,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="dock" id="dock">
   <div class="dock__info">
     <b data-slot="nome">Praça PMPE</b>
-    <span data-slot="dock-sub">1.320 vagas autorizadas</span>
+    <span data-slot="dock-sub">De R$ 1.654 por R$ 637</span>
   </div>
   <a class="btn btn--gold" data-checkout href="https://checkout.cppem.com.br/pay/operacao-praca-pmpe"><span>Garantir vaga</span></a>
 </div>

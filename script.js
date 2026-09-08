@@ -20,6 +20,15 @@
     pagina: "operacao-pmpe-pcpe",
     whats:  "558173105354",
 
+    /* ─── O PREÇO ────────────────────────────────────────────
+       Hoje as duas operações custam o mesmo, mas o valor mora DENTRO de cada
+       uma: no dia em que uma delas mudar de preço, é só editar o objeto dela
+       — nenhuma outra linha desta página precisa saber que isso aconteceu.
+
+       Estes números espelham o checkout linha por linha. Se um mudar lá,
+       mudam quatro lugares aqui: este CONFIG, a <table class="conta"> no
+       index.html, o "offers.price" do JSON-LD e o texto do CTA final. */
+
     ops: {
       pmpe: {
         sigla:        "PMPE",
@@ -28,9 +37,15 @@
         corp:         "Polícia Militar de Pernambuco",
         vagas:        "1.320",
         tag:          "1.320 vagas autorizadas · edital previsto para 2026",
-        dockSub:      "1.320 vagas autorizadas",
+        dockSub:      "De R$ 1.654 por R$ 637",
         brasao:       "public/brasao-pmpe.webp",
         brasaoAlt:    "Brasão da Polícia Militar de Pernambuco",
+        precoOff:     "−56%",
+        precoDe:      "R$ 1.654,00",
+        precoCom:     "R$ 732,36",
+        precoAbate:   "− R$ 95,36",
+        preco:        "R$ 637,00",
+        economia:     "R$ 1.017,00",
         checkout:     "https://checkout.cppem.com.br/pay/operacao-praca-pmpe",
         titulo:       "Operação Praça PMPE — mentoria completa para a Polícia Militar de Pernambuco | CPPEM"
       },
@@ -41,9 +56,15 @@
         corp:         "Polícia Civil de Pernambuco",
         vagas:        "1.315",
         tag:          "1.315 vagas autorizadas · edital previsto para 2026",
-        dockSub:      "1.315 vagas autorizadas",
+        dockSub:      "De R$ 1.654 por R$ 637",
         brasao:       "public/brasao-pcpe.webp",
         brasaoAlt:    "Brasão da Polícia Civil de Pernambuco",
+        precoOff:     "−56%",
+        precoDe:      "R$ 1.654,00",
+        precoCom:     "R$ 732,36",
+        precoAbate:   "− R$ 95,36",
+        preco:        "R$ 637,00",
+        economia:     "R$ 1.017,00",
         checkout:     "https://checkout.cppem.com.br/pay/operacao-distintivo-pcpe",
         titulo:       "Operação Distintivo PCPE — mentoria completa para a Polícia Civil de Pernambuco | CPPEM"
       }
@@ -89,6 +110,13 @@
       "vagas":         op.vagas,
       "tag":           op.tag,
       "dock-sub":      op.dockSub,
+      "preco":         op.preco,
+      "preco-de":      op.precoDe,
+      "preco-com":     op.precoCom,
+      "preco-abate":   op.precoAbate,
+      "preco-off":     op.precoOff,
+      "economia":      op.economia,
+      "cta-preco":     "Garantir minha vaga por " + op.preco,
       "outra-sigla":   outra.sigla
     };
 
@@ -348,8 +376,8 @@
      pela animação .anim d5 — dois fade-ins no mesmo bloco brigariam.
      ========================================================= */
   var alvos = $$(
-    ".section__head, .item, .extras__head, .extra, .etapa, " +
-    ".duo__foto, .duo__col, .faq__item, .tabela-wrap, .final__inner"
+    ".section__head, .item, .extras__head, .extra, .etapa, .bonus__grid > *, " +
+    ".preco__caixa, .duo__foto, .duo__col, .faq__item, .tabela-wrap, .final__inner"
   );
   alvos.forEach(function (el) { el.classList.add("reveal"); });
 
@@ -505,6 +533,10 @@
      precisa se sustentar sozinha numa tela parada. */
   semear(document.getElementById("brasas"), 22);
   semear(document.getElementById("portalBrasas"), 38);
+  /* O bloco do bônus tem brasa própria. As da página são `fixed` e sobem pela
+     viewport inteira; estas são `absolute` dentro da seção, então elas se
+     concentram ali e o bloco fica visivelmente mais quente que o resto. */
+  semear(document.getElementById("bonusBrasas"), 16);
 
   var sparks = document.getElementById("sparks");
   if (sparks && !reduced) {
