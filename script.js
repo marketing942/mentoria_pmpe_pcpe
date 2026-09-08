@@ -28,7 +28,7 @@
         corp:         "Polícia Militar de Pernambuco",
         vagas:        "1.320",
         tag:          "1.320 vagas autorizadas · edital previsto para 2026",
-        dockSub:      "1.320 vagas · mentoria completa",
+        dockSub:      "1.320 vagas autorizadas",
         brasao:       "public/brasao-pmpe.webp",
         brasaoAlt:    "Brasão da Polícia Militar de Pernambuco",
         checkout:     "https://checkout.cppem.com.br/pay/operacao-praca-pmpe",
@@ -41,7 +41,7 @@
         corp:         "Polícia Civil de Pernambuco",
         vagas:        "1.315",
         tag:          "1.315 vagas autorizadas · edital previsto para 2026",
-        dockSub:      "1.315 vagas · mentoria completa",
+        dockSub:      "1.315 vagas autorizadas",
         brasao:       "public/brasao-pcpe.webp",
         brasaoAlt:    "Brasão da Polícia Civil de Pernambuco",
         checkout:     "https://checkout.cppem.com.br/pay/operacao-distintivo-pcpe",
@@ -312,6 +312,7 @@
   var progress = document.getElementById("progress");
   var heroBg   = document.getElementById("heroBg");
   var dock     = document.getElementById("dock");
+  var whats    = document.getElementById("whats");
   var ticking  = false;
 
   function render() {
@@ -323,9 +324,13 @@
       progress.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
     }
 
-    /* A barra fixa do mobile só entra depois da hero — antes disso o próprio
-       CTA da dobra já está na tela e ela só cobriria conteúdo. */
-    if (dock) dock.classList.toggle("is-on", y > window.innerHeight * 0.85);
+    /* A barra fixa do mobile e o WhatsApp só entram depois da hero — antes
+       disso o próprio CTA da dobra já está na tela, e os dois só cobririam
+       conteúdo. É o mesmo limiar para os dois de propósito: eles aparecem
+       juntos e o olho registra uma mudança, não duas. */
+    var passouHero = y > window.innerHeight * 0.85;
+    if (dock)  dock.classList.toggle("is-on", passouHero);
+    if (whats) whats.classList.toggle("is-on", passouHero);
 
     if (!reduced && heroBg && y < window.innerHeight * 1.2) {
       heroBg.style.transform = "translateY(" + (y * 0.16) + "px)";

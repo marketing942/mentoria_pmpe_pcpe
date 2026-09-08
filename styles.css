@@ -78,6 +78,13 @@
   --op-halo:   rgba(196,112,63,.30);
   --op-marca:  url("public/marca-pmpe.webp");
   --op-brasao: url("public/brasao-pmpe.webp");
+  /* Quanto a marca d água entra pela direita. É token, e não número fixo no
+     .section::before, porque os dois desenhos têm densidade diferente: o da
+     PMPE é um brasão fechado que some no preto, o da PCPE é um escudo aberto
+     com as palavras POLÍCIA CIVIL em caixa alta — no mesmo recuo ele deixa
+     letras legíveis atrás do texto da seção e vira ruído, não textura. */
+  --op-marca-x: calc(100% + 320px);
+  --op-marca-h: 560px;
 }
 
 [data-op="pcpe"] {
@@ -85,6 +92,8 @@
   --op-halo:   rgba(91,140,184,.30);
   --op-marca:  url("public/marca-pcpe.webp");
   --op-brasao: url("public/brasao-pcpe.webp");
+  --op-marca-x: calc(100% + 330px);
+  --op-marca-h: 500px;
 }
 
 /* ─── BASE ─────────────────────────────────────────────── */
@@ -147,9 +156,6 @@ strong, b { font-weight: 700; color: var(--text); }
     radial-gradient(900px 460px at 80% 6%,  var(--op-halo), transparent 68%),
     radial-gradient(780px 420px at 14% 94%, rgba(175,146,86,.045), transparent 70%);
 }
-/* O halo da operação a 30% seria mancha de cor no fundo de uma seção inteira;
-   aqui ele entra rebaixado pela própria opacidade do gradiente. */
-.section { background-blend-mode: normal; }
 .section--alt { background: linear-gradient(180deg, #0C0C0E, #0F0F13 50%, #0C0C0E); }
 
 /* ─── MARCAS D ÁGUA ────────────────────────────────────────
@@ -167,8 +173,8 @@ strong, b { font-weight: 700; color: var(--text); }
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
 }
 .section::before {
-  background: var(--op-marca) calc(100% + 170px) 50% / auto 560px no-repeat;
-  opacity: .06;
+  background: var(--op-marca) var(--op-marca-x) 50% / auto var(--op-marca-h) no-repeat;
+  opacity: .05;
 }
 /* O leão é um desenho grande e de traço grosso: na mesma opacidade da marca
    da corporação ele dominava as seções mais vazias. */
@@ -315,7 +321,13 @@ strong, b { font-weight: 700; color: var(--text); }
     radial-gradient(120% 90% at 50% 108%, rgba(196,112,63,.16), transparent 62%),
     radial-gradient(90% 70% at 50% -10%, rgba(175,146,86,.10), transparent 60%),
     #08080A;
-  overflow: hidden;
+  /* A intenção é que o portal caiba inteiro na tela — enquanto ele está de
+     pé, não deve existir página atrás para o visitante espiar. Mas a
+     intenção não vale um portão decepado: em tela baixa (celular deitado,
+     janela cortada, fonte aumentada) a rolagem entra e salva o conteúdo.
+     Nas alturas normais o conteúdo cabe e ninguém rola nada. */
+  overflow-x: hidden; overflow-y: auto;
+  overscroll-behavior: contain;
   transition: opacity .62s var(--ease), transform .62s var(--ease), visibility .62s;
 }
 /* O fundo do atirador também aqui, mais apagado que na hero: dá chão à cena
@@ -473,12 +485,26 @@ strong, b { font-weight: 700; color: var(--text); }
   position: relative; width: clamp(96px, 15vh, 150px); aspect-ratio: 1;
   margin: 0 auto clamp(14px, 2.4vh, 22px);
 }
+/* ─── por que o aro é DOIS elementos ───────────────────────
+   O que gira é a LUZ no metal, não o medalhão.
+
+   Girar o próprio .portao__aro (que carrega o clip-path hexagonal) gira o
+   hexágono junto: a cada quadro os vértices dele saem de alinhamento com os
+   do núcleo e o medalhão aparece como duas peças tortas, uma por cima da
+   outra. É um bug que só se vê em movimento — um print no ângulo zero passa
+   limpo.
+
+   Então o recorte fica PARADO no pai e a rampa cônica gira num filho maior
+   que ele. clip-path recorta os descendentes, então a luz nunca vaza. */
 .portao__aro {
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; overflow: hidden;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.portao__aro::before {
+  content: ''; position: absolute; inset: -40%;
   background: conic-gradient(from 0deg,
     var(--gold-deep), var(--gold-light) 18%, var(--gold-pale) 26%, var(--gold) 42%,
     var(--gold-deep) 58%, var(--gold-light) 76%, var(--gold-deep) 100%);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   animation: aro-gira 14s linear infinite;
 }
 @keyframes aro-gira { to { transform: rotate(360deg); } }
@@ -874,12 +900,17 @@ html.is-portal .dock, html.is-portal .float { display: none; }
   position: relative; width: clamp(150px, 26vw, 250px); aspect-ratio: 1;
   margin: clamp(26px, 5vh, 44px) auto 0;
 }
+/* mesma construção do aro do portal: recorte parado no pai, luz girando no
+   filho — ver o comentário longo em .portao__aro */
 .selo__aro {
-  position: absolute; inset: 0;
+  position: absolute; inset: 0; overflow: hidden;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.selo__aro::before {
+  content: ''; position: absolute; inset: -40%;
   background: conic-gradient(from 0deg,
     var(--gold-deep), var(--gold-light) 18%, var(--gold-pale) 26%, var(--gold) 42%,
     var(--gold-deep) 58%, var(--gold-light) 76%, var(--gold-deep) 100%);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   animation: aro-gira 20s linear infinite;
 }
 .selo__core {
@@ -902,10 +933,13 @@ html.is-portal .dock, html.is-portal .float { display: none; }
   background: radial-gradient(circle, var(--op-halo), transparent 66%);
   animation: halo-respira 4.2s var(--ease) infinite;
 }
-/* onda que sai do medalhão a cada ciclo: o "pulso" da operação */
+/* Onda que sai do medalhão a cada ciclo: o "pulso" da operação.
+   A borda é INSET: clip-path recorta também a sombra, e uma box-shadow
+   externa some inteira atrás do próprio recorte — o anel simplesmente não
+   aparece. Por dentro ela vira o contorno do hexágono, que é o que se quer. */
 .selo::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  box-shadow: 0 0 0 1px var(--border-active);
+  box-shadow: inset 0 0 0 1px var(--border-active);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   animation: selo-onda 3.6s var(--ease) infinite;
 }
@@ -1019,7 +1053,10 @@ html.is-portal .dock, html.is-portal .float { display: none; }
   display: block; font-family: var(--font-title); font-size: 16.5px; font-weight: 700;
   letter-spacing: .4px; color: var(--text); line-height: 1.25;
 }
-.item__txt span { display: block; margin-top: 5px; color: var(--text-dim); font-size: 14.5px; line-height: 1.55; }
+/* O ">" não é enfeite: o <span> da sigla vive DENTRO do <b> do título e do
+   próprio parágrafo. Com o seletor de descendente ele também virava bloco,
+   e "Videoaulas e PDFs da PMPE" quebrava com a sigla sozinha numa linha. */
+.item__txt > span { display: block; margin-top: 5px; color: var(--text-dim); font-size: 14.5px; line-height: 1.55; }
 
 /* =========================================================
    OS EXTRAS — o bloco de bônus
@@ -1055,13 +1092,19 @@ html.is-portal .dock, html.is-portal .float { display: none; }
 }
 .extra:hover::before { opacity: 1; }
 .extra:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px var(--border-active); }
-.extra__ico { width: 38px; height: 38px; margin: 0 auto 14px; color: var(--gold); }
+/* display: block é o que dá tamanho ao ícone: ele é um <span>, e caixa inline
+   ignora width/height — o SVG de dentro, pedindo 100%, resolveria contra nada
+   e desenharia do tamanho da caixa inteira. */
+.extra__ico { display: block; width: 38px; height: 38px; margin: 0 auto 14px; color: var(--gold); }
 .extra__ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .extra b {
   display: block; font-family: var(--font-title); font-size: 15.5px; font-weight: 800;
   letter-spacing: .6px; color: var(--gold-light); line-height: 1.25;
 }
-.extra span { display: block; margin-top: 7px; color: var(--text-mute); font-size: 13.5px; line-height: 1.5; }
+/* Classe própria, e não ".extra > span": o ícone TAMBÉM é um span filho
+   direto, e qualquer seletor que pegue os dois pinta o ícone com a cor e
+   o tamanho da legenda — era por isso que ele saía cinza em vez de ouro. */
+.extra__txt { display: block; margin-top: 7px; color: var(--text-mute); font-size: 13.5px; line-height: 1.5; }
 
 /* =========================================================
    ETAPAS — como funciona
@@ -1071,16 +1114,20 @@ html.is-portal .dock, html.is-portal .float { display: none; }
 /* o fio que liga uma etapa à seguinte. O :last-child não recebe, senão a
    linha continuaria para fora da última caixa apontando para nada. */
 .etapa::before {
-  content: ''; position: absolute; top: 13px; left: 46px; right: -18px; height: 1px;
+  content: ''; position: absolute; top: 14px; left: 46px; right: -18px; height: 1px;
   background: linear-gradient(90deg, var(--border-active), var(--border-soft));
 }
 .etapa:last-child::before { display: none; }
+/* Chanfro, e não hexágono: numa caixa de 28px o hexágono apontado deixa a
+   borda interna visível só nos dois lados retos, e o número passa a parecer
+   preso entre duas barrinhas. O canto chanfrado é o mesmo vocabulário do
+   resto da página e desenha inteiro nesse tamanho. */
 .etapa__num {
   position: absolute; top: 0; left: 0;
-  width: 28px; height: 28px; display: grid; place-items: center;
-  background: var(--bg); box-shadow: inset 0 0 0 1px var(--border-active);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  font-family: var(--font-title); font-size: 12px; font-weight: 800; color: var(--gold);
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: rgba(175,146,86,.09); box-shadow: inset 0 0 0 1px var(--border-active);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  font-family: var(--font-title); font-size: 13px; font-weight: 800; color: var(--gold);
 }
 .etapa h3 {
   font-family: var(--font-title); font-size: 17px; font-weight: 800;
@@ -1271,19 +1318,33 @@ html.is-portal .dock, html.is-portal .float { display: none; }
   transition: transform .35s var(--ease), visibility .35s;
 }
 .dock.is-on { transform: none; visibility: visible; }
+/* As duas linhas nunca quebram: a dock tem altura fixa e um nome de operação
+   em três linhas empurraria o botão para fora dela. O que não couber some no
+   fim da linha, e o botão continua no lugar. */
 .dock__info { flex: 1; min-width: 0; }
-.dock__info b { display: block; font-family: var(--font-title); font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold-light); }
-.dock__info span { display: block; font-size: 11.5px; letter-spacing: 1.4px; color: var(--text-mute); }
+.dock__info b, .dock__info span {
+  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dock__info b { font-family: var(--font-title); font-size: 13.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold-light); }
+.dock__info span { font-size: 11.5px; letter-spacing: 1.4px; color: var(--text-mute); }
 
-/* botão flutuante do WhatsApp */
+/* Botão flutuante do WhatsApp.
+   Entra no mesmo instante que a dock, e não no carregamento: na primeira
+   dobra do celular ele pousa exatamente em cima do CTA secundário da hero,
+   que é largura cheia. Um botão verde tapando metade do "ver tudo que
+   inclui" custa mais do que um atendimento ganho três segundos antes. */
 .float {
   position: fixed; right: 18px; bottom: 22px; z-index: 290;
   width: 54px; height: 54px; display: grid; place-items: center;
   border-radius: 50%; background: #1FA855; color: #fff;
   box-shadow: 0 12px 30px -8px rgba(31,168,85,.6);
-  transition: transform var(--t), box-shadow var(--t);
+  /* visibility junto do transform: só encolher deixaria o botão invisível
+     ainda alcançável pelo Tab */
+  opacity: 0; visibility: hidden; transform: scale(.7);
+  transition: transform .3s var(--freada), opacity .3s var(--ease), visibility .3s, box-shadow var(--t);
 }
-.float:hover { transform: scale(1.07); box-shadow: 0 16px 36px -8px rgba(31,168,85,.8); }
+.float.is-on { opacity: 1; visibility: visible; transform: none; }
+.float.is-on:hover { transform: scale(1.07); box-shadow: 0 16px 36px -8px rgba(31,168,85,.8); }
 .float svg { width: 27px; height: 27px; fill: currentColor; }
 
 /* =========================================================
@@ -1398,6 +1459,25 @@ html.is-portal .dock, html.is-portal .float { display: none; }
   .portao__selo { margin: 0; width: clamp(78px, 20vw, 104px); }
   .portao__entrar { margin-top: 10px; justify-content: flex-start; }
   .portao__vagas { margin-top: 10px; }
+
+  /* Tudo encolhe junto. Os dois portões deitados já ocupam a maior parte de
+     uma tela de celular; a chamada acima deles precisa caber no que sobra,
+     senão o primeiro portão nasce colado na última linha do parágrafo. */
+  .portal { padding: 14px 0; }
+  .portal__marca img { width: 36px; }
+  .portal__marca b { font-size: 17px; letter-spacing: 3px; }
+  .portal__chamada { margin-top: 12px; }
+  .portal__chamada h1 { margin-top: 10px; font-size: clamp(23px, 6.6vw, 34px); }
+  .portal__chamada p { margin-top: 10px; font-size: 14px; max-width: 42ch; }
+  .portoes { gap: 6px; }
+  .portao__desig { font-size: 9.5px; letter-spacing: 3.4px; margin-bottom: 5px; }
+  .portao__nome { font-size: clamp(19px, 5.4vw, 26px); }
+  .portao__sigla { font-size: clamp(23px, 6.6vw, 32px); letter-spacing: 2px; }
+  .portao__corp { margin-top: 7px; font-size: 12.5px; }
+  .portao__vagas { height: 26px; padding: 0 10px; font-size: 10px; letter-spacing: 1.4px; }
+  .portao__vagas b { font-size: 12px; }
+  .portao__entrar { font-size: 10.5px; letter-spacing: 2.4px; }
+  .portal__nota { font-size: 10.5px; letter-spacing: 1.8px; }
 }
 
 @media (max-width: 920px) {
